@@ -1,4 +1,4 @@
-# 📊 Philippine Agri Farmgate and Retail Price Analysis
+# 📊 Price Transmission Between Farm-Gate and Retail Markets for Major Agricultural Commodities in the Philippines (2021–2025)
 
 ## ⚙️ Backend API System (Data Processing & Analytics Layer)
 An automated data pipeline and analytical API designed to examine the relationship between farmgate prices and retail prices for key agricultural commodities in the Philippines (2021–2025).
