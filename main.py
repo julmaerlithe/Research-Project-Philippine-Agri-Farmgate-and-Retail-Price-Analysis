@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from statsmodels.tsa.stattools import grangercausalitytests
 import os
+import calendar
 
 app = FastAPI(title="Agri-Price Intelligence API")
 
@@ -101,21 +102,41 @@ def run_causality_test(commodity: str, max_lag: int = 3):
         return {"status": "Error", "detail": str(e)}
       
 @app.get("/analysis/trends")
-def get_time_series_aggregation(freq: str = "YE"):
+def get_time_series_aggregation(commodity: str = None, freq: str = "ME", seasonal: bool = False):
     """
-    Aggregates data by Year (YE) or Month.
-    Useful for high-level dashboard charts.
+    freq: "ME" (Monthly), "QE" (Quarterly), "YE" (Yearly)
+    seasonal: If True, returns Jan-Dec average across all years.
     """
     df = load_processed_data()
-    # Grouping by frequency and commodity
-    df.set_index('Date', inplace=True)
-    summary = df.groupby(['Commodity', pd.Grouper(freq=freq)]).agg({
-        'Farmgate (average)': 'mean',
-        'Retail (average)': 'mean',
-        'Margin': 'mean'
-    }).reset_index()
     
-    summary['Date'] = summary['Date'].dt.strftime('%Y-%m-%d')
+    # Filter by commodity first if provided
+    if commodity:
+        df = df[df['Commodity'].str.lower() == commodity.lower()].copy()
+
+    if seasonal:
+        # --- SEASONAL LOGIC (Jan-Dec Average) ---
+        # We group by the month number (1-12)
+        summary = df.groupby(['Commodity', df['Date'].dt.month]).agg({
+            'Farmgate (average)': 'mean',
+            'Retail (average)': 'mean',
+            'Margin': 'mean'
+        }).reset_index()
+        
+        # Rename the 'Date' column (which is now 1-12) to Month Names
+        summary['Date'] = summary['Date'].apply(lambda x: calendar.month_name[x])
+        
+    else:
+        # --- TIME-SERIES LOGIC (2021-2025 Timeline) ---
+        df.set_index('Date', inplace=True)
+        summary = df.groupby(['Commodity', pd.Grouper(freq=freq)]).agg({
+            'Farmgate (average)': 'mean',
+            'Retail (average)': 'mean',
+            'Margin': 'mean'
+        }).reset_index()
+        
+        # Keep the Year-Month format for the timeline
+        summary['Date'] = summary['Date'].dt.strftime('%Y-%m-%d')
+    
     return summary.to_dict(orient="records")
 
 if __name__ == "__main__":
