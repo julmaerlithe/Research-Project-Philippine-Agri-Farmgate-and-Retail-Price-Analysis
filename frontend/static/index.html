@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agricultural Price Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --g900:#17390D;--g800:#2B5C1E;--g700:#3A7228;--g600:#4A8030;
+  --g500:#5C9840;--g400:#7AB85A;--g300:#A8D48A;--g200:#C8E8B0;
+  --g100:#E4F3D8;--g50:#F0F8E8;
+  --a600:#C8621A;--a500:#E07B39;--a400:#F0954A;--a200:#F7D4B0;--a100:#FDF3E8;
+  --cream:#F6F3EE;--white:#FFFFFF;
+  --t900:#18280F;--t700:#3A4E32;--t500:#5A6B52;--t400:#7A8B72;--t300:#9AAB92;
+  --border:#DDE8D4;--borderL:#EDF4E4;
+}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--t900);min-height:100vh;display:flex;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:272px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:26px 18px 30px;position:fixed;left:0;top:0;overflow-y:auto;z-index:100;display:flex;flex-direction:column;gap:0;}
+.sb-brand{margin-bottom:22px;}
+.sb-brand h1{font-family:'Lora',serif;font-size:16.5px;font-weight:700;color:var(--g800);line-height:1.35;margin-bottom:4px;}
+.sb-brand p{font-size:11.5px;color:var(--t400);font-weight:400;}
+.sb-sep{height:1px;background:var(--borderL);margin:14px 0;}
+.ctl-label{font-size:11px;font-weight:600;color:var(--t400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+
+/* select */
+.commodity-wrap{position:relative;margin-bottom:20px;}
+.commodity-select{width:100%;padding:10px 36px 10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--white);font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;color:var(--t900);cursor:pointer;appearance:none;transition:border-color .2s,box-shadow .2s;}
+.commodity-select:focus{outline:none;border-color:var(--g600);box-shadow:0 0 0 3px rgba(74,128,48,.12);}
+.commodity-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--t400);pointer-events:none;}
+
+/* view toggle */
+.view-toggle{display:flex;background:var(--g50);border-radius:9px;padding:3px;border:1px solid var(--borderL);margin-bottom:6px;}
+.view-btn{flex:1;padding:8px 10px;border:none;border-radius:6px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .22s;background:transparent;color:var(--t400);}
+.view-btn.active{background:var(--g800);color:#fff;box-shadow:0 2px 8px rgba(43,92,30,.28);}
+.view-hint{font-size:11px;color:var(--t300);margin-bottom:20px;padding-left:2px;}
+
+.toggle-row{display:flex;align-items:center;gap:9px;margin-bottom:20px;}
+.tlabel{font-size:13px;color:var(--t400);font-weight:400;}
+
+.sw{position:relative;width:42px;height:23px;flex-shrink:0;}
+.sw input{opacity:0;width:0;height:0;position:absolute;}
+.sw-track{position:absolute;cursor:pointer;inset:0;background:#B0BEC5;border-radius:23px;transition:background .25s;}
+.sw-track::before{content:'';position:absolute;height:17px;width:17px;left:3px;bottom:3px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:transform .25s;}
+.sw input:checked + .sw-track{background:var(--g700);}
+.sw input:checked + .sw-track::before{transform:translateX(19px);}
+.sw input:disabled + .sw-track{opacity:0.4;cursor:not-allowed;}
+
+/* slider */
+.sl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.sl-val{font-weight:700;color:var(--g700);}
+.range-sl{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;outline:none;cursor:pointer;margin-bottom:7px;background:linear-gradient(to right,var(--g700) 0%,var(--g700) 25%,var(--border) 25%,var(--border) 100%);}
+.range-sl::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--g700);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.2);cursor:pointer;}
+.range-sl::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--g700);border:2px solid #fff;cursor:pointer;}
+.sl-hint{font-size:11px;color:var(--t300);}
+
+/* about */
+.about-box{background:var(--g50);border:1px solid var(--borderL);border-radius:10px;padding:13px;margin-top:auto;}
+.about-box h4{font-size:13px;font-weight:600;color:var(--t700);margin-bottom:6px;font-family:'Lora',serif;}
+.about-box p{font-size:11.5px;color:var(--t500);line-height:1.65;}
+
+/* ── MAIN ── */
+.main{margin-left:272px;flex:1;padding:32px 32px 40px;min-width:0;}
+
+/* loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(246,243,238,.75);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(2px);transition:opacity .3s;}
+.loading-overlay.hidden{opacity:0;pointer-events:none;}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--g700);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* error toast */
+.error-toast{position:fixed;bottom:24px;right:24px;background:#991B1B;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:1000;display:none;max-width:320px;line-height:1.5;}
+.error-toast.show{display:block;}
+
+/* header */
+.mhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;gap:16px;}
+.mhdr-title h2{font-family:'Lora',serif;font-size:25px;font-weight:700;color:var(--t900);margin-bottom:4px;}
+.mhdr-title p{font-size:13px;color:var(--t500);}
+.mkt-badge{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:50px;font-size:13px;font-weight:600;border:1.5px solid;white-space:nowrap;position:relative;flex-shrink:0;}
+.mkt-badge.ok{background:var(--g50);border-color:var(--g300);color:var(--g800);}
+.mkt-badge.no{background:#FEF2F2;border-color:#FECACA;color:#991B1B;}
+.badge-pval{position:absolute;bottom:-18px;right:4px;font-size:10.5px;font-weight:400;color:var(--t400);}
+.badge-check{font-size:14px;}
+.info-icon{width:16px;height:16px;border-radius:50%;background:var(--a400);color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;cursor:help;position:relative;flex-shrink:0;}
+.info-icon.show{display:flex;}
+.info-tip{display:none;position:absolute;top:calc(100% + 8px);right:-8px;background:var(--t900);color:#fff;font-size:11px;font-weight:400;padding:9px 12px;border-radius:9px;width:230px;line-height:1.55;z-index:200;white-space:normal;}
+.info-icon:hover .info-tip{display:block;}
+
+/* stat cards */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.sc{background:var(--white);border:1px solid var(--borderL);border-radius:13px;padding:18px 18px 16px;position:relative;transition:box-shadow .2s,transform .18s;}
+.sc:hover{box-shadow:0 5px 22px rgba(43,92,30,.09);transform:translateY(-1px);}
+.sc.sg{background:var(--g50);border-color:var(--g200);}
+.sc.sa{background:var(--a100);border-color:var(--a200);}
+.sc-label{font-size:11.5px;color:var(--t400);font-weight:400;margin-bottom:10px;}
+.sc-ico{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.sc-ico.g{background:var(--g100);}
+.sc-ico.a{background:#F7E4CC;}
+.sc-ico.n{background:#F0F2EE;}
+.sc-ico svg{width:16px;height:16px;}
+.sc-val{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--t900);margin-bottom:3px;display:flex;align-items:baseline;gap:4px;}
+.sc-up{font-size:14px;color:var(--g600);font-weight:600;font-family:'Outfit',sans-serif;}
+.sc-sub{font-size:11.5px;color:var(--t400);}
+
+/* chart cards */
+.cc{background:var(--white);border:1px solid var(--borderL);border-radius:13px;padding:22px;margin-bottom:18px;}
+.cc-title{font-family:'Lora',serif;font-size:15.5px;font-weight:700;color:var(--t900);margin-bottom:16px;}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.chart-scroll-outer{overflow:hidden;border-radius:6px;}
+.chart-scroll-inner{overflow-x:auto;overflow-y:hidden;padding-bottom:6px;}
+.chart-scroll-inner::-webkit-scrollbar{height:5px;}
+.chart-scroll-inner::-webkit-scrollbar-track{background:var(--g50);border-radius:5px;}
+.chart-scroll-inner::-webkit-scrollbar-thumb{background:var(--g300);border-radius:5px;}
+.chart-wrap{position:relative;}
+.chart-legend{display:flex;align-items:center;gap:18px;margin-top:14px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--t500);}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.leg-dot.g{background:var(--g700);}
+.leg-dot.a{background:var(--a400);}
+
+/* granger */
+.gc{background:var(--white);border:1px solid var(--borderL);border-radius:13px;padding:22px;margin-bottom:18px;}
+.gc-title{font-family:'Lora',serif;font-size:15.5px;font-weight:700;color:var(--t900);margin-bottom:16px;}
+.gc-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--borderL);font-size:14px;}
+.gc-row:last-of-type{border-bottom:none;}
+.gc-lbl{color:var(--t500);}
+.gc-val{font-weight:600;color:var(--t900);}
+.gc-note{background:var(--g50);border:1px solid var(--g200);border-radius:9px;padding:13px 15px;font-size:13px;color:var(--g800);margin-top:14px;display:flex;align-items:flex-start;gap:8px;}
+.gc-note.warn{background:#FFFBEB;border-color:#FDE68A;color:#92400E;}
+.gc-note-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- Error toast -->
+<div class="error-toast" id="errorToast"></div>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <h1>Agricultural Price Analysis</h1>
+    <p>Monitor price gaps and market integration</p>
+  </div>
+
+  <div class="sb-sep"></div>
+
+  <div class="ctl-label">Commodity</div>
+  <div class="commodity-wrap">
+    <select class="commodity-select" id="commoditySelect">
+      <option value="Banana">Banana</option>
+      <option value="Mango" selected>Mango</option>
+      <option value="Pineapple">Pineapple</option>
+      <option value="Coconut">Coconut</option>
+      <option value="Palay">Palay</option>
+      <option value="Corn">Corn</option>
+    </select>
+  </div>
+
+  <div class="ctl-label">View Mode</div>
+  <div class="view-toggle">
+    <button class="view-btn active" id="btnTimeline" onclick="setView('timeline')">Timeline</button>
+    <button class="view-btn" id="btnSeasonal" onclick="setView('seasonal')">Seasonal</button>
+  </div>
+  <p class="view-hint" id="viewHint">Full 2021–2025 progression</p>
+
+  <div class="sb-sep"></div>
+
+  <div class="ctl-label">Time Aggregation</div>
+  <div class="toggle-row">
+    <span class="tlabel" id="lblMonthly" style="color:var(--t900);font-weight:600;">Monthly</span>
+    <label class="sw">
+      <input type="checkbox" id="aggToggle" onchange="setAggregation(this.checked)">
+      <span class="sw-track"></span>
+    </label>
+    <span class="tlabel" id="lblYearly">Yearly</span>
+  </div>
+
+  <div class="sb-sep"></div>
+
+  <div class="sl-header ctl-label" style="display:flex;text-transform:uppercase;letter-spacing:.07em;">
+    <span>Granger Causality Max Lag: </span>
+    <span class="sl-val" id="lagVal" style="margin-left:4px;">4</span>
+  </div>
+  <input type="range" class="range-sl" id="lagSlider" min="1" max="12" value="4" oninput="setLag(this.value)">
+  <p class="sl-hint">Controls sensitivity of price transmission analysis</p>
+
+  <div class="sb-sep"></div>
+
+  <div class="about-box">
+    <h4>About This Dashboard</h4>
+    <p>This tool helps identify inefficiencies in agricultural supply chains by comparing farmgate and retail prices across Philippine commodities (2021–2025).</p>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+  <div class="mhdr">
+    <div class="mhdr-title">
+      <h2>Agricultural Price Dashboard</h2>
+      <p id="mainSubtitle">Analyzing price transmission and marketing margins for Mango</p>
+    </div>
+    <div class="mkt-badge ok" id="mktBadge">
+      <span class="badge-check">✓</span>
+      <span id="badgeText">Market Integrated</span>
+      <span class="info-icon" id="infoIcon">
+        i
+        <span class="info-tip">Statistical analysis is calculated based on the full 5-year timeline to ensure accuracy.</span>
+      </span>
+      <span class="badge-pval" id="badgePval">p-value: —</span>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="sc sg">
+      <div class="sc-label">Farmer's Share</div>
+      <div class="sc-ico g">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4A8030" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      </div>
+      <div class="sc-val"><span id="statShare">—</span> <span class="sc-up">↑</span></div>
+      <div class="sc-sub">of retail price</div>
+    </div>
+    <div class="sc sa">
+      <div class="sc-label">Average Margin</div>
+      <div class="sc-ico a">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#E07B39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="sc-val">₱<span id="statMargin">—</span></div>
+      <div class="sc-sub">per kilogram</div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">Farmgate Price</div>
+      <div class="sc-ico n">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5A6B52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="sc-val">₱<span id="statFG">—</span></div>
+      <div class="sc-sub">avg per kg</div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">Retail Price</div>
+      <div class="sc-ico n">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5A6B52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <div class="sc-val">₱<span id="statRetail">—</span></div>
+      <div class="sc-sub">avg per kg</div>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="cc-title">Farmgate vs. Retail Price Trend</div>
+    <div class="chart-scroll-outer">
+      <div class="chart-scroll-inner" id="priceScrollInner">
+        <div class="chart-wrap" id="priceChartWrap">
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="chart-legend">
+      <div class="leg-item"><div class="leg-dot g"></div> Farmer receives this amount</div>
+      <div class="leg-item"><div class="leg-dot a"></div> Marketing margin (middlemen, transport, retail)</div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Farmer's Share Trend</div>
+      <div class="chart-scroll-outer">
+        <div class="chart-scroll-inner" id="shareScrollInner">
+          <div class="chart-wrap" id="shareChartWrap">
+            <canvas id="shareChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cc" style="margin-bottom:0">
+      <div class="cc-title">Average Marketing Margin by Commodity</div>
+      <div class="chart-wrap">
+        <canvas id="marginChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="gc" style="margin-top:18px;">
+    <div class="gc-title">Granger Causality Analysis</div>
+    <div class="gc-row"><span class="gc-lbl">Test Status:</span><span class="gc-val" id="gcStatus">—</span></div>
+    <div class="gc-row"><span class="gc-lbl">P-Value:</span><span class="gc-val" id="gcPval">—</span></div>
+    <div class="gc-row"><span class="gc-lbl">Optimal Lag:</span><span class="gc-val" id="gcLag">—</span></div>
+    <div class="gc-note" id="gcNote">
+      <span class="gc-note-icon">✓</span>
+      <span id="gcNoteText">Loading analysis…</span>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────────
+const API_BASE = 'http://localhost:5000/api';
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ─────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────
+let state = { commodity: 'Mango', view: 'timeline', yearly: false, maxLag: 4 };
+let charts = {};
+
+// Cache raw monthly API data per commodity so we can derive yearly/seasonal client-side
+// without extra round-trips. Structure: { Mango: [{date,farmgate,retail,margin,farmer_share}, …] }
+const dataCache = {};
+
+// Cache bar-chart data (all-commodity averages) — fetched once
+let allMarginsCache = null;
+
+// ─────────────────────────────────────────────────────────────────
+// LOADING / ERROR UI
+// ─────────────────────────────────────────────────────────────────
+function showLoading(on) {
+  document.getElementById('loadingOverlay').classList.toggle('hidden', !on);
+}
+
+function showError(msg) {
+  const t = document.getElementById('errorToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// API HELPERS
+// ─────────────────────────────────────────────────────────────────
+async function fetchMarginData(commodity) {
+  if (dataCache[commodity]) return dataCache[commodity];
+
+  const res = await fetch(`${API_BASE}/analysis/margin/${encodeURIComponent(commodity)}`);
+  if (!res.ok) throw new Error(`API error ${res.status} for ${commodity}`);
+  const json = await res.json();
+
+  // Sort by date ascending
+  const rows = (json.data || []).sort((a, b) => a.date.localeCompare(b.date));
+  dataCache[commodity] = rows;
+  return rows;
+}
+
+async function fetchGrangerData(commodity, maxLag) {
+  const res = await fetch(
+    `${API_BASE}/analysis/causality/${encodeURIComponent(commodity)}?max_lag=${maxLag}`
+  );
+  if (!res.ok) throw new Error(`Granger API error ${res.status}`);
+  return res.json();
+}
+
+async function fetchAllMargins() {
+  if (allMarginsCache) return allMarginsCache;
+  const res = await fetch(`${API_BASE}/analysis/margins/all`);
+  if (!res.ok) throw new Error(`Margins API error ${res.status}`);
+  const json = await res.json();
+  allMarginsCache = json.data || [];
+  return allMarginsCache;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// DATA TRANSFORMS  (monthly rows → view-specific arrays)
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Parse "YYYY-MM" into {year, month0} where month0 is 0-based.
+ */
+function parseDate(str) {
+  const [y, m] = str.split('-');
+  return { year: +y, month0: +m - 1 };
+}
+
+function labelFromDate(str) {
+  const { year, month0 } = parseDate(str);
+  return `${MONTHS_SHORT[month0]} '${String(year).slice(2)}`;
+}
+
+function tooltipTitleFromIndex(idx, viewData) {
+  if (state.view === 'seasonal') return MONTHS_FULL[idx] || '';
+  if (state.yearly) return viewData.labels[idx];
+
+  // Monthly: derive from date string stored alongside
+  const { year, month0 } = parseDate(viewData.dates[idx]);
+  return `${MONTHS_FULL[month0]} ${year}`;
+}
+
+/** Monthly view — one point per data row */
+function toMonthlyView(rows) {
+  return {
+    labels: rows.map(r => labelFromDate(r.date)),
+    dates:  rows.map(r => r.date),
+    fg:     rows.map(r => r.farmgate),
+    retail: rows.map(r => r.retail),
+    margin: rows.map(r => r.margin),
+    share:  rows.map(r => r.farmer_share),
+  };
+}
+
+/** Yearly view — average the 12 months of each year */
+function toYearlyView(rows) {
+  const byYear = {};
+  for (const r of rows) {
+    const yr = r.date.slice(0, 4);
+    if (!byYear[yr]) byYear[yr] = [];
+    byYear[yr].push(r);
+  }
+  const years = Object.keys(byYear).sort();
+  const avg = arr => +(arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2);
+
+  return {
+    labels: years,
+    dates:  years,
+    fg:     years.map(y => avg(byYear[y].map(r => r.farmgate))),
+    retail: years.map(y => avg(byYear[y].map(r => r.retail))),
+    margin: years.map(y => avg(byYear[y].map(r => r.margin))),
+    share:  years.map(y => avg(byYear[y].map(r => r.farmer_share))),
+  };
+}
+
+/** Seasonal view — average across all years for each calendar month */
+function toSeasonalView(rows) {
+  const byMonth = Array.from({ length: 12 }, () => []);
+  for (const r of rows) {
+    const m0 = parseDate(r.date).month0;
+    byMonth[m0].push(r);
+  }
+  const avg = arr => arr.length ? +(arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2) : 0;
+
+  return {
+    labels: MONTHS_SHORT,
+    dates:  MONTHS_SHORT,
+    fg:     byMonth.map(g => avg(g.map(r => r.farmgate))),
+    retail: byMonth.map(g => avg(g.map(r => r.retail))),
+    margin: byMonth.map(g => avg(g.map(r => r.margin))),
+    share:  byMonth.map(g => avg(g.map(r => r.farmer_share))),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────
+// CHART SETUP
+// ─────────────────────────────────────────────────────────────────
+const GREEN_FILL   = 'rgba(58,114,40,0.70)';
+const GREEN_BORDER = '#3A7228';
+const AMBER_FILL   = 'rgba(240,149,74,0.72)';
+const AMBER_BORDER = '#E07B39';
+
+// Shared tooltip title helper — needs access to current viewData
+let _currentViewData = null;
+
+function makeCharts() {
+  const pCtx = document.getElementById('priceChart').getContext('2d');
+  charts.price = new Chart(pCtx, {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'Farmgate Price', data: [], fill: true, backgroundColor: GREEN_FILL,
+        borderColor: GREEN_BORDER, borderWidth: 1.5, tension: .35,
+        pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: GREEN_BORDER },
+      { label: 'Marketing Margin', data: [], fill: '-1', backgroundColor: AMBER_FILL,
+        borderColor: AMBER_BORDER, borderWidth: 1.5, tension: .35,
+        pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: AMBER_BORDER },
+    ]},
+    options: {
+      responsive: false, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#18280F', titleColor: '#C8E8B0', bodyColor: '#fff',
+          padding: 10, cornerRadius: 8,
+          callbacks: {
+            title(items) { return _currentViewData ? tooltipTitleFromIndex(items[0].dataIndex, _currentViewData) : ''; },
+            label(item)  { return ` ${item.dataset.label}: ₱${item.raw.toFixed(2)}`; }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
+             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', maxRotation: 45, minRotation: 45 } },
+        y: { stacked: true, grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
+             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', callback: v => `₱${v}` }, min: 0 }
+      }
+    }
+  });
+
+  const sCtx = document.getElementById('shareChart').getContext('2d');
+  charts.share = new Chart(sCtx, {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: "Farmer's Share", data: [], fill: false, borderColor: GREEN_BORDER,
+        borderWidth: 2, tension: .35, pointRadius: 0, pointHoverRadius: 5,
+        pointHoverBackgroundColor: GREEN_BORDER },
+      { label: 'Average', data: [], fill: false, borderColor: '#A8D48A',
+        borderWidth: 1.5, borderDash: [5, 4], tension: 0, pointRadius: 0, pointHoverRadius: 0 },
+    ]},
+    options: {
+      responsive: false, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#18280F', titleColor: '#C8E8B0', bodyColor: '#fff',
+          padding: 10, cornerRadius: 8,
+          filter(item) { return item.dataset.label !== 'Average'; },
+          callbacks: {
+            title(items) { return _currentViewData ? tooltipTitleFromIndex(items[0].dataIndex, _currentViewData) : ''; },
+            label(item)  { return ` Farmer's Share: ${item.raw.toFixed(1)}%`; }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
+             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', maxRotation: 45, minRotation: 45 } },
+        y: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
+             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', callback: v => `${v}%` },
+             min: 0, max: 100, suggestedMax: 100 }
+      }
+    }
+  });
+
+  const mCtx = document.getElementById('marginChart').getContext('2d');
+  charts.margin = new Chart(mCtx, {
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: 'Avg Margin', data: [],
+      backgroundColor: [], borderColor: [], borderWidth: 1,
+      borderRadius: 4, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#18280F', titleColor: '#C8E8B0', bodyColor: '#fff',
+          padding: 10, cornerRadius: 8,
+          callbacks: { label(item) { return ` Avg Margin: ₱${item.raw.toFixed(2)}/kg`; } }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72' } },
+        y: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
+             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', callback: v => `₱${v}` }, min: 0 }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// RENDER HELPERS
+// ─────────────────────────────────────────────────────────────────
+function avg(arr) { return arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0; }
+
+function renderStats(vd) {
+  const avgFG     = avg(vd.fg);
+  const avgRet    = avg(vd.retail);
+  const avgMargin = avg(vd.margin);
+  const avgShare  = avg(vd.share);
+
+  document.getElementById('statShare').textContent  = `${avgShare.toFixed(1)}%`;
+  document.getElementById('statMargin').textContent = avgMargin.toFixed(2);
+  document.getElementById('statFG').textContent     = avgFG.toFixed(2);
+  document.getElementById('statRetail').textContent = avgRet.toFixed(2);
+}
+
+function renderGranger(gr) {
+  const integrated = gr.is_significant;
+  const pVal       = gr.p_value != null ? Number(gr.p_value).toFixed(4) : '—';
+  const optLag     = gr.optimal_lag ?? '—';
+
+  document.getElementById('gcStatus').textContent = integrated ? 'Prices are integrated' : 'Prices are NOT integrated';
+  document.getElementById('gcPval').textContent   = pVal;
+  document.getElementById('gcLag').textContent    = optLag !== '—' ? `${optLag} period${optLag !== 1 ? 's' : ''}` : '—';
+  document.getElementById('badgePval').textContent= `p-value: ${pVal}`;
+
+  const mktBadge  = document.getElementById('mktBadge');
+  const badgeText = document.getElementById('badgeText');
+  const badgeCheck= mktBadge.querySelector('.badge-check');
+  const gcNote    = document.getElementById('gcNote');
+  const gcNoteIcon= gcNote.querySelector('.gc-note-icon');
+  const gcNoteText= document.getElementById('gcNoteText');
+
+  if (integrated) {
+    mktBadge.className = 'mkt-badge ok';
+    badgeText.textContent = 'Market Integrated';
+    badgeCheck.textContent = '✓';
+    gcNote.className = 'gc-note';
+    gcNoteIcon.textContent = '✓';
+    gcNoteText.textContent = gr.message || 'Retail prices respond to farmgate price changes, suggesting effective price transmission.';
+  } else {
+    mktBadge.className = 'mkt-badge no';
+    badgeText.textContent = 'Not Integrated';
+    badgeCheck.textContent = '✗';
+    gcNote.className = 'gc-note warn';
+    gcNoteIcon.textContent = '⚠';
+    gcNoteText.textContent = gr.message || 'Weak price transmission detected. Farmgate changes may not efficiently reach retail markets.';
+  }
+}
+
+function renderPriceChart(vd) {
+  const isSeasonal = state.view === 'seasonal';
+  const isYearly   = state.yearly && !isSeasonal;
+  const n = vd.labels.length;
+  const isScrollable = !isSeasonal && !isYearly;
+  const PW = isScrollable ? Math.max(n * 19, 800) : '100%';
+  const PH = 280;
+
+  const pWrap   = document.getElementById('priceChartWrap');
+  const pCanvas = document.getElementById('priceChart');
+  pCanvas.style.height = PH + 'px';
+  if (typeof PW === 'number') {
+    pWrap.style.width = PW + 'px';
+    pCanvas.style.width = PW + 'px';
+    pCanvas.width = PW;
+    pCanvas.height = PH;
+  } else {
+    pWrap.style.width = '';
+    pCanvas.style.width = '';
+  }
+
+  charts.price.data.labels = vd.labels;
+  charts.price.data.datasets[0].data = vd.fg;
+  charts.price.data.datasets[1].data = vd.margin;
+  charts.price.options.scales.y.stacked = true;
+  charts.price.resize();
+  charts.price.update();
+}
+
+function renderShareChart(vd) {
+  const isSeasonal = state.view === 'seasonal';
+  const isYearly   = state.yearly && !isSeasonal;
+  const n = vd.labels.length;
+  const isScrollable = !isSeasonal && !isYearly;
+  const SW = isScrollable ? Math.max(n * 19, 800) : '100%';
+
+  const sWrap   = document.getElementById('shareChartWrap');
+  const sCanvas = document.getElementById('shareChart');
+  sCanvas.style.height = '220px';
+  if (typeof SW === 'number') {
+    sWrap.style.width = SW + 'px';
+    sCanvas.style.width = SW + 'px';
+    sCanvas.width = SW;
+    sCanvas.height = 220;
+  } else {
+    sWrap.style.width = '';
+    sCanvas.style.width = '';
+  }
+
+  const avgShareVal = avg(vd.share);
+  charts.share.data.labels = vd.labels;
+  charts.share.data.datasets[0].data = vd.share;
+  charts.share.data.datasets[1].data = vd.share.map(() => +avgShareVal.toFixed(1));
+  charts.share.resize();
+  charts.share.update();
+}
+
+async function renderMarginBarChart(selectedCommodity) {
+  try {
+    const allData = await fetchAllMargins();
+    const labels  = allData.map(d => d.commodity);
+    const margins = allData.map(d => d.avg_margin);
+    const selIdx  = labels.indexOf(selectedCommodity);
+
+    charts.margin.data.labels = labels;
+    charts.margin.data.datasets[0].data = margins;
+    charts.margin.data.datasets[0].backgroundColor = labels.map((_, i) =>
+      i === selIdx ? 'rgba(58,114,40,0.90)' : 'rgba(58,114,40,0.50)'
+    );
+    charts.margin.data.datasets[0].borderColor = labels.map((_, i) =>
+      i === selIdx ? GREEN_BORDER : 'rgba(58,114,40,0.60)'
+    );
+    charts.margin.update();
+  } catch (e) {
+    console.warn('Bar chart error:', e);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// MAIN UPDATE  — called on every control change
+// ─────────────────────────────────────────────────────────────────
+async function updateDashboard() {
+  showLoading(true);
+  const c = state.commodity;
+
+  try {
+    // 1. Fetch margin/price data (cached after first load)
+    const rows = await fetchMarginData(c);
+
+    // 2. Transform to current view
+    const isSeasonal = state.view === 'seasonal';
+    const isYearly   = state.yearly && !isSeasonal;
+    let vd;
+    if (isSeasonal)    vd = toSeasonalView(rows);
+    else if (isYearly) vd = toYearlyView(rows);
+    else               vd = toMonthlyView(rows);
+
+    _currentViewData = vd;
+
+    // 3. Update subtitle
+    document.getElementById('mainSubtitle').textContent =
+      `Analyzing price transmission and marketing margins for ${c}`;
+
+    // 4. Info icon (seasonal warning)
+    document.getElementById('infoIcon').className = isSeasonal ? 'info-icon show' : 'info-icon';
+
+    // 5. Stat cards
+    renderStats(vd);
+
+    // 6. Charts
+    renderPriceChart(vd);
+    renderShareChart(vd);
+    renderMarginBarChart(c);   // async but non-blocking for main content
+
+    // 7. Granger causality (always runs on full data; max_lag sent as query param)
+    const gr = await fetchGrangerData(c, state.maxLag);
+    renderGranger(gr);
+
+  } catch (err) {
+    console.error(err);
+    showError(`Failed to load data for ${c}. Is the backend running on port 5000?`);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// CONTROLS
+// ─────────────────────────────────────────────────────────────────
+function setView(v) {
+  state.view = v;
+  document.getElementById('btnTimeline').className = v === 'timeline' ? 'view-btn active' : 'view-btn';
+  document.getElementById('btnSeasonal').className = v === 'seasonal' ? 'view-btn active' : 'view-btn';
+  document.getElementById('viewHint').textContent  =
+    v === 'timeline' ? 'Full 2021–2025 progression' : 'Jan–Dec average (2021–2025)';
+
+  const agg = document.getElementById('aggToggle');
+  if (v === 'seasonal') {
+    agg.disabled = true;
+    document.getElementById('lblMonthly').style.opacity = '0.45';
+    document.getElementById('lblYearly').style.opacity  = '0.45';
+  } else {
+    agg.disabled = false;
+    document.getElementById('lblMonthly').style.opacity = '';
+    document.getElementById('lblYearly').style.opacity  = '';
+    updateAggLabels(agg.checked);
+  }
+  updateDashboard();
+}
+
+function setAggregation(yearly) {
+  state.yearly = yearly;
+  updateAggLabels(yearly);
+  updateDashboard();
+}
+
+function updateAggLabels(yearly) {
+  const monthly = document.getElementById('lblMonthly');
+  const yearlyL = document.getElementById('lblYearly');
+  monthly.style.color      = yearly ? '' : 'var(--t900)';
+  monthly.style.fontWeight = yearly ? '400' : '600';
+  yearlyL.style.color      = yearly ? 'var(--t900)' : '';
+  yearlyL.style.fontWeight = yearly ? '600' : '400';
+}
+
+function setLag(v) {
+  state.maxLag = +v;
+  document.getElementById('lagVal').textContent = v;
+  const pct = ((v - 1) / (12 - 1) * 100).toFixed(1);
+  document.getElementById('lagSlider').style.background =
+    `linear-gradient(to right,var(--g700) 0%,var(--g700) ${pct}%,var(--border) ${pct}%,var(--border) 100%)`;
+  updateDashboard();
+}
+
+document.getElementById('commoditySelect').addEventListener('change', function () {
+  state.commodity = this.value;
+  updateDashboard();
+});
+
+// ─────────────────────────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  makeCharts();
+  updateDashboard();
+});
+</script>
+</body>
+</html>
