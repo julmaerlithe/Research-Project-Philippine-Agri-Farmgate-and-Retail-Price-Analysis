@@ -54,7 +54,7 @@ body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--t900);m
 /* slider */
 .sl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
 .sl-val{font-weight:700;color:var(--g700);}
-.range-sl{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;outline:none;cursor:pointer;margin-bottom:7px;background:linear-gradient(to right,var(--g700) 0%,var(--g700) 25%,var(--border) 25%,var(--border) 100%);}
+.range-sl{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;outline:none;cursor:pointer;margin-bottom:7px;background:linear-gradient(to right,var(--g700) 0%,var(--g700) 100%,var(--border) 100%,var(--border) 100%);}
 .range-sl::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--g700);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.2);cursor:pointer;}
 .range-sl::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--g700);border:2px solid #fff;cursor:pointer;}
 .sl-hint{font-size:11px;color:var(--t300);}
@@ -133,6 +133,10 @@ body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--t900);m
 .gc-note{background:var(--g50);border:1px solid var(--g200);border-radius:9px;padding:13px 15px;font-size:13px;color:var(--g800);margin-top:14px;display:flex;align-items:flex-start;gap:8px;}
 .gc-note.warn{background:#FFFBEB;border-color:#FDE68A;color:#92400E;}
 .gc-note-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.gc-lag-list{margin-top:12px;font-size:13px;color:var(--t500);}
+.gc-lag-list-label{font-weight:600;color:var(--t700);margin-bottom:6px;}
+.gc-lag-list ul{padding-left:18px;margin:4px 0 0;}
+.gc-lag-list li{margin-bottom:4px;}
 </style>
 </head>
 <body>
@@ -189,9 +193,9 @@ body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--t900);m
 
   <div class="sl-header ctl-label" style="display:flex;text-transform:uppercase;letter-spacing:.07em;">
     <span>Granger Causality Max Lag: </span>
-    <span class="sl-val" id="lagVal" style="margin-left:4px;">4</span>
+    <span class="sl-val" id="lagVal" style="margin-left:4px;">3</span>
   </div>
-  <input type="range" class="range-sl" id="lagSlider" min="1" max="12" value="4" oninput="setLag(this.value)">
+  <input type="range" class="range-sl" id="lagSlider" min="1" max="3" value="3" oninput="setLag(this.value)">
   <p class="sl-hint">Controls sensitivity of price transmission analysis</p>
 
   <div class="sb-sep"></div>
@@ -207,7 +211,7 @@ body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--t900);m
 
   <div class="mhdr">
     <div class="mhdr-title">
-      <h2>Agricultural Price Dashboard</h2>
+      <h2>AgriPulse PH: Agricultural Price Intelligence & Market Integration</h2>
       <p id="mainSubtitle">Analyzing price transmission and marketing margins for Mango</p>
     </div>
     <div class="mkt-badge ok" id="mktBadge">
@@ -299,6 +303,10 @@ body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--t900);m
       <span class="gc-note-icon">✓</span>
       <span id="gcNoteText">Loading analysis…</span>
     </div>
+    <div class="gc-lag-list" id="gcLagListWrap">
+      <div class="gc-lag-list-label">Lag-specific p-values:</div>
+      <ul id="gcPvalList"></ul>
+    </div>
   </div>
 
 </main>
@@ -314,7 +322,7 @@ const MONTHS_FULL  = ['January','February','March','April','May','June','July','
 // ─────────────────────────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────────────────────────
-let state = { commodity: 'Mango', view: 'timeline', yearly: false, maxLag: 4 };
+let state = { commodity: 'Mango', view: 'timeline', yearly: false, maxLag: 3 };
 let charts = {};
 
 // Cache raw monthly API data per commodity so we can derive yearly/seasonal client-side
@@ -355,11 +363,25 @@ async function fetchMarginData(commodity) {
 }
 
 async function fetchGrangerData(commodity, maxLag) {
-  const res = await fetch(
-    `${API_BASE}/analysis/causality/${encodeURIComponent(commodity)}?max_lag=${maxLag}`
-  );
-  if (!res.ok) throw new Error(`Granger API error ${res.status}`);
-  return res.json();
+  const url = `${API_BASE}/analysis/causality/${encodeURIComponent(commodity)}?max_lag=${maxLag}`;
+  console.debug('Fetching Granger causality:', url);
+  const res = await fetch(url);
+  let json;
+  try {
+    json = await res.json();
+  } catch (err) {
+    throw new Error(`Granger API returned invalid JSON: ${err.message}`);
+  }
+
+  if (!res.ok) {
+    throw new Error(`Granger API error ${res.status}: ${json?.detail || json?.error || res.statusText}`);
+  }
+
+  if (json.status !== 'Success') {
+    throw new Error(json.detail || json.error || `Granger endpoint returned status ${json.status}`);
+  }
+
+  return json;
 }
 
 async function fetchAllMargins() {
@@ -575,11 +597,20 @@ function renderGranger(gr) {
   const integrated = gr.is_significant;
   const pVal       = gr.p_value != null ? Number(gr.p_value).toFixed(4) : '—';
   const optLag     = gr.optimal_lag ?? '—';
+  const pValues    = gr.p_values || {};
 
   document.getElementById('gcStatus').textContent = integrated ? 'Prices are integrated' : 'Prices are NOT integrated';
   document.getElementById('gcPval').textContent   = pVal;
   document.getElementById('gcLag').textContent    = optLag !== '—' ? `${optLag} period${optLag !== 1 ? 's' : ''}` : '—';
   document.getElementById('badgePval').textContent= `p-value: ${pVal}`;
+
+  const pvalList = document.getElementById('gcPvalList');
+  pvalList.innerHTML = Object.keys(pValues).length > 0
+    ? Object.entries(pValues)
+        .sort((a, b) => parseInt(a[0].split('_')[1], 10) - parseInt(b[0].split('_')[1], 10))
+        .map(([lag, value]) => `<li>${lag.replace('lag_', 'Lag ')}: ${Number(value).toFixed(4)}</li>`)
+        .join('')
+    : '<li>No lag p-values available</li>';
 
   const mktBadge  = document.getElementById('mktBadge');
   const badgeText = document.getElementById('badgeText');
@@ -594,14 +625,14 @@ function renderGranger(gr) {
     badgeCheck.textContent = '✓';
     gcNote.className = 'gc-note';
     gcNoteIcon.textContent = '✓';
-    gcNoteText.textContent = gr.message || 'Retail prices respond to farmgate price changes, suggesting effective price transmission.';
+    gcNoteText.textContent = gr.message || `Selected lag ${optLag} is statistically significant.`;
   } else {
     mktBadge.className = 'mkt-badge no';
     badgeText.textContent = 'Not Integrated';
     badgeCheck.textContent = '✗';
     gcNote.className = 'gc-note warn';
     gcNoteIcon.textContent = '⚠';
-    gcNoteText.textContent = gr.message || 'Weak price transmission detected. Farmgate changes may not efficiently reach retail markets.';
+    gcNoteText.textContent = gr.message || `Selected lag ${optLag} is not statistically significant.`;
   }
 }
 
@@ -724,11 +755,25 @@ async function updateDashboard() {
     renderGranger(gr);
 
   } catch (err) {
-    console.error(err);
-    showError(`Failed to load data for ${c}. Is the backend running on port 5000?`);
+    console.error('Dashboard update failed:', err);
+    renderGrangerError(err.message || 'Granger analysis failed');
+    showError(`Failed to load data for ${c}. ${err.message || 'Is the backend running on port 5000?'}`);
   } finally {
     showLoading(false);
   }
+}
+
+function renderGrangerError(message) {
+  document.getElementById('gcStatus').textContent = 'Analysis unavailable';
+  document.getElementById('gcPval').textContent = '—';
+  document.getElementById('gcLag').textContent = '—';
+  document.getElementById('badgePval').textContent = 'p-value: —';
+  const gcNote = document.getElementById('gcNote');
+  const gcNoteIcon = gcNote.querySelector('.gc-note-icon');
+  const gcNoteText = document.getElementById('gcNoteText');
+  gcNote.className = 'gc-note warn';
+  gcNoteIcon.textContent = '⚠';
+  gcNoteText.textContent = message;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -773,8 +818,11 @@ function updateAggLabels(yearly) {
 function setLag(v) {
   state.maxLag = +v;
   document.getElementById('lagVal').textContent = v;
-  const pct = ((v - 1) / (12 - 1) * 100).toFixed(1);
-  document.getElementById('lagSlider').style.background =
+  const slider = document.getElementById('lagSlider');
+  const min = +slider.min;
+  const max = +slider.max;
+  const pct = ((v - min) / (max - min) * 100).toFixed(1);
+  slider.style.background =
     `linear-gradient(to right,var(--g700) 0%,var(--g700) ${pct}%,var(--border) ${pct}%,var(--border) 100%)`;
   updateDashboard();
 }

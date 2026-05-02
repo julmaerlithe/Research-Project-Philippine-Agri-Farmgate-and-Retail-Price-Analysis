@@ -1,11 +1,21 @@
 import numpy as np
-from scipy import stats
 import pandas as pd
+from statsmodels.tsa.api import VAR
+from statsmodels.tsa.stattools import grangercausalitytests
 
 
 class AnalyticsService:
     def __init__(self, data_service):
         self.data_service = data_service
+
+    def load_processed_data(self):
+        """
+        Load the processed data as a pandas DataFrame
+        """
+        data = self.data_service.get_all_data()
+        if data is None:
+            return pd.DataFrame()
+        return pd.DataFrame(data)
 
     def calculate_margin_analysis(self, commodity):
         """
@@ -35,89 +45,98 @@ class AnalyticsService:
 
         return result
 
-    def granger_causality_test(self, commodity, max_lag=4):
+    def granger_causality_test(self, commodity, max_lag=3):
         data = self.data_service.get_commodity_data(commodity)
 
         if not data or len(data) < 10:
+            print(f"DEBUG: Granger check failed for {commodity}: insufficient raw rows ({len(data) if data else 0})")
             return {
                 'commodity': commodity,
                 'error': 'Insufficient data for causality test'
             }
 
         df = pd.DataFrame(data).sort_values('Date')
-        farmgate = df['Farmgate (average)'].values.astype(float)
-        retail = df['Retail (average)'].values.astype(float)
+        farmgate = df['Farmgate (average)'].astype(float)
+        retail = df['Retail (average)'].astype(float)
 
-        # Normalize to prevent F-stat overflow
-        farmgate = (farmgate - farmgate.mean()) / (farmgate.std() + 1e-8)
-        retail = (retail - retail.mean()) / (retail.std() + 1e-8)
+        diff_data = pd.DataFrame({
+            'Retail': retail.diff(),
+            'Farmgate': farmgate.diff()
+        }).dropna()
 
-        max_lag = max(1, min(max_lag, len(farmgate) // 4))
+        print(f"DEBUG: Granger data for {commodity}: raw={len(df)}, diffed={len(diff_data)}")
 
-        best_p = 1.0
-        best_lag = max_lag
+        if len(diff_data) < max_lag + 2:
+            return {
+                'commodity': commodity,
+                'error': 'Insufficient stationary data after differencing.'
+            }
 
-        for lag in range(1, max_lag + 1):
-            X_data, y_data = [], []
+        max_lag = max(1, min(max_lag, 3, len(diff_data) // 4))
+        test_input = diff_data[['Retail', 'Farmgate']].values
 
-            for i in range(lag, len(farmgate)):
-                lagged_fg = farmgate[i - lag:i]
-                lagged_rt = retail[i - lag:i]
-                X_data.append(np.concatenate([lagged_fg, lagged_rt]))
-                y_data.append(retail[i])
+        try:
+            selection = VAR(diff_data).select_order(maxlags=max_lag)
+            selected_lag = getattr(selection, 'bic', None)
+            if selected_lag is None and hasattr(selection, 'selected_orders'):
+                selected_lag = selection.selected_orders.get('bic')
+            selected_lag = int(selected_lag) if selected_lag is not None else 1
+            if selected_lag < 1:
+                selected_lag = 1
+        except Exception as e:
+            print(f"WARNING: VAR lag selection failed for {commodity}: {e}")
+            selected_lag = 1
 
-            if len(X_data) < 5:
+        try:
+            raw_result = grangercausalitytests(test_input, maxlag=max_lag, verbose=False)
+        except Exception as e:
+            print(f"ERROR: Statsmodels grangercausalitytests failure for {commodity}: {e}")
+            return {
+                'commodity': commodity,
+                'error': 'Granger causality test failed on the processed data.'
+            }
+
+        p_values = {}
+        for lag, result in raw_result.items():
+            stats_dict = result[0]
+            p_val_tuple = stats_dict.get('ssr_ftest')
+            if not p_val_tuple or len(p_val_tuple) < 2:
                 continue
 
-            X = np.array(X_data)
-            y = np.array(y_data)
-            X_c = np.column_stack([np.ones(len(X)), X])
+            p_val = float(p_val_tuple[1])
+            p_values[f'lag_{lag}'] = round(p_val, 4)
 
-            try:
-                from numpy.linalg import lstsq
-                coeffs = lstsq(X_c, y, rcond=None)[0]
-                y_pred = X_c @ coeffs
-                ss_res = np.sum((y - y_pred) ** 2)
-                ss_tot = np.sum((y - np.mean(y)) ** 2)
+        print(f"DEBUG: Granger p-values for {commodity}: {p_values}, bic_selected_lag={selected_lag}")
 
-                if ss_tot == 0:
-                    continue
+        if not p_values:
+            return {
+                'commodity': commodity,
+                'error': 'Unable to extract valid p-values from the Granger test.'
+            }
 
-                r2 = min(max(1 - (ss_res / ss_tot), 0), 0.9999)
+        selected_key = f'lag_{selected_lag}'
+        selected_p = p_values.get(selected_key)
+        if selected_p is None:
+            selected_lag = min(p_values, key=lambda k: p_values[k]).split('_')[1]
+            selected_p = p_values[f'lag_{selected_lag}']
+            selected_lag = int(selected_lag)
 
-                n = len(y)
-                k = X.shape[1]
-                if (n - k - 1) <= 0:
-                    continue
-
-                f_stat = (r2 / k) / ((1 - r2) / (n - k - 1))
-                p = float(1 - stats.f.cdf(f_stat, k, n - k - 1))
-                p = max(p, 0.0001)  # floor to avoid showing 0.0000
-
-                if p < best_p:
-                    best_p = p
-                    best_lag = lag
-
-            except Exception:
-                continue
-
-        best_p = round(best_p, 4)
-        is_sig = best_p < 0.05
+        is_sig = selected_p < 0.05
+        message = (
+            f"Selected lag {selected_lag} by BIC is {'statistically significant' if is_sig else 'not statistically significant'} "
+            f"(p = {selected_p:.4f})."
+        )
 
         return {
             'commodity': commodity,
-            'p_value': best_p,
-            'optimal_lag': best_lag,
+            'p_value': selected_p,
+            'optimal_lag': selected_lag,
+            'lag_selection_method': 'BIC',
             'max_lag_used': max_lag,
+            'p_values': p_values,
             'is_significant': is_sig,
             'interpretation': 'Significant' if is_sig else 'Not significant',
-            'message': (
-                'Retail prices respond to farmgate price changes, '
-                'suggesting effective price transmission.'
-            ) if is_sig else (
-                'Weak price transmission detected. Farmgate changes may not '
-                'efficiently reach retail markets.'
-            )
+            'message': message
         }
 
     def time_series_trends(self, commodity=None, frequency='monthly'):

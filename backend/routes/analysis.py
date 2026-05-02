@@ -1,6 +1,58 @@
 from flask import Blueprint, jsonify, request, current_app
+import pandas as pd  # Required for dataframe operations
+from statsmodels.tsa.stattools import grangercausalitytests # The missing piece causing the 500
 
 analysis_bp = Blueprint('analysis', __name__, url_prefix='/api/analysis')
+
+@analysis_bp.route('/causality/<commodity>', methods=['GET'])
+def causality_test(commodity):
+    """
+    Granger Causality Test
+    Uses the analytics service for consistent implementation
+    """
+    try:
+        analytics_service = current_app.config['analytics_service']
+        max_lag = request.args.get('max_lag', 3, type=int)
+        max_lag = max(1, min(3, max_lag))  # clamp to a safe maximum lag
+
+        print(f"DEBUG: /api/analysis/causality/{commodity} hit with max_lag={max_lag}")
+
+        result = analytics_service.granger_causality_test(commodity, max_lag)
+        print(f"DEBUG: Granger result for {commodity}: {result}")
+
+        if 'error' in result:
+            return jsonify({
+                "commodity": commodity,
+                "status": "Error",
+                "detail": result['error'],
+                "p_value": None,
+                "optimal_lag": None,
+                "is_significant": False,
+                "message": result['error']
+            }), 200
+
+        return jsonify({
+            "commodity": commodity,
+            "status": "Success",
+            "p_value": result['p_value'],
+            "optimal_lag": result['optimal_lag'],
+            "lag_selection_method": result.get('lag_selection_method', 'BIC'),
+            "is_significant": result['is_significant'],
+            "p_values": result.get('p_values', {}),
+            "message": result['message']
+        }), 200
+
+    except Exception as e:
+        print(f"ERROR: /api/analysis/causality/{commodity} exception: {e}")
+        return jsonify({
+            "commodity": commodity,
+            "status": "Error",
+            "detail": str(e),
+            "p_value": None,
+            "optimal_lag": None,
+            "is_significant": False,
+            "message": str(e)
+        }), 500
 
 
 @analysis_bp.route('/margin/<commodity>', methods=['GET'])
@@ -16,27 +68,6 @@ def margin_analysis(commodity):
         if result is None:
             return jsonify({'error': f'No data found for {commodity}'}), 404
 
-        return jsonify(result), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@analysis_bp.route('/causality/<commodity>', methods=['GET'])
-def causality_test(commodity):
-    """
-    Granger Causality Test
-    Endpoint: GET /api/analysis/causality/{commodity}?max_lag=4
-    max_lag: optional query param (default 4, range 1-12)
-    """
-    try:
-        analytics_service = current_app.config['analytics_service']
-
-        # Accept max_lag from query string (sent by the frontend slider)
-        max_lag = request.args.get('max_lag', 4, type=int)
-        max_lag = max(1, min(12, max_lag))   # clamp 1–12
-
-        result = analytics_service.granger_causality_test(commodity, max_lag=max_lag)
         return jsonify(result), 200
 
     except Exception as e:
