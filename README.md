@@ -97,7 +97,7 @@ This system helps identify:
 
 - **Source**: Philippine Statistics Authority (PSA)  
 - **Coverage**: 2021–2025  
-- **Commodities**: Rice, Corn, Coconut, Cassava, Banana, Pineapple, Mango, Ube  
+- **Commodities**:  Rice, Corn, Coconut, Bananas, Pineapples, and Mangoes
 
 ---
 
