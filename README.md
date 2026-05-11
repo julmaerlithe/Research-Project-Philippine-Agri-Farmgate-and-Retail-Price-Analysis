@@ -1,59 +1,114 @@
-# 📊 Price Transmission Between Farm-Gate and Retail Markets for Major Agricultural Commodities in the Philippines (2021–2025)
+# AgriPulse PH: Agricultural Price Intelligence & Market Integration
 
-## ⚙️ Backend API System (Data Processing & Analytics Layer)
-An automated data pipeline and analytical API designed to examine the relationship between farmgate prices and retail prices for key agricultural commodities in the Philippines (2021–2025).
+## Project Overview
 
----
+This project examines farmgate versus retail price transparency for major agricultural commodities in the Philippines from 2021 to 2025. Utilizing datasets from the Philippine Statistics Authority (PSA), the system analyzes price transmission mechanisms, marketing margins, and causal relationships between farmgate and retail prices to enhance supply chain transparency and inform policy decisions.
 
-## 📌 Project Overview
-This project addresses the transparency gap in the Philippine agricultural supply chain. By integrating datasets from the Philippine Statistics Authority (PSA), the system provides real-time analysis of marketing margins and applies econometric tests to determine price transmission efficiency.
+## Key Features
 
----
+- **Data Standardization**: Processes and standardizes raw PSA datasets into a unified format for consistent analysis.
+- **Marketing Margin Analysis**: Calculates marketing margins and farmer's share for key commodities including Banana, Mango, Pineapple, Coconut, Cassava, Palay, and Corn.
+- **Granger Causality Testing**: Applies statistical tests using Statsmodels to determine if changes in farmgate prices Granger-cause changes in retail prices, assessing price transmission efficiency.
 
-## 🎯 Key Objectives
-- **Standardization**: Transform disparate CSV/Excel datasets into a unified **long-format time series**
-- **Margin Analysis**: Calculate the **Marketing Margin** and **Farmer's Share** for core commodities (Banana, Mango, Pineapple, Coconut, Cassava, Ube, Palay, Corn)
-- **Predictive Analytics**: Utilize **Granger Causality** to determine if farmgate price changes predict retail price movements
+## Project Structure
 
----
-
-## 🛠️ Technical Stack
-- **Language**: Python 3.10+
-- **Framework**: FastAPI (Backend API)
-- **Data Processing**: Pandas, NumPy
-- **Statistics**: Statsmodels (Granger Causality, VAR)
-- **Documentation**: Swagger UI / OpenAPI
-
----
-
-## 📂 Project Structure
-- **standardize_data.py** – Script to clean and merge raw PSA datasets  
-- **main.py** – FastAPI backend with analysis logic  
-- **Standardized_Farmgate_Retail_Final_Data.csv** – Final cleaned dataset  
-- **README.md** – Project documentation
-
----
-
-## 🚀 Getting Started
-## 1. Installation
-Clone the repository and install dependencies:
-```bash
-pip install fastapi uvicorn pandas numpy statsmodels
 ```
-## 2. Data Standardization
-Process raw datasets before running the API:
-```bash
-python standardize_data.py
+/
+├── backend/
+│   ├── main.py                 # FastAPI application entry point
+│   ├── requirements.txt        # Python dependencies
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── analysis.py         # Analysis-related API routes
+│   │   └── prices.py           # Price data API routes
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── analytics_service.py # Analytics and statistical computations
+│   │   ├── data_service.py     # Data loading and processing
+│   │   └── price_service.py    # Price-specific calculations
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── price_model.py      # Data models and schemas
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── standardizer.py     # Data standardization utilities
+│   └── data/
+│       └── FINAL Datasets - Farmgate&Retail Prices (Average, Margin).csv
+├── frontend/
+│   ├── main.py                 # Frontend application entry point
+│   ├── requirements.txt        # Python dependencies
+│   ├── routes/
+│   │   └── __init__.py
+│   └── static/
+│       └── index.html          # Static HTML frontend
+└── README.md                   # Project documentation
 ```
-## 3. Run the API
-```bash
-uvicorn main:app --reload
+
+## Setup Instructions
+
+### Prerequisites
+- Python 3.10 or higher
+- pip package manager
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd philippine-agri-price-analysis
+   ```
+
+2. Install backend dependencies:
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+3. Install frontend dependencies:
+   ```bash
+   cd ../frontend
+   pip install -r requirements.txt
+   ```
+
+### Running the Application
+
+1. Start the backend API:
+   ```bash
+   cd backend
+   python main.py
+   ```
+
+2. Start the frontend (in a separate terminal):
+   ```bash
+   cd frontend
+   python main.py
+   ```
+
+The backend will be available at `http://localhost:8000` and the frontend at `http://localhost:8080` (or as configured).
+
+## API Endpoints
+
+The backend provides RESTful API endpoints under the `/api/analysis/` prefix for various analytical operations:
+
+### Margin Analysis
+- `GET /api/analysis/margins/{commodity}` - Retrieve marketing margins and farmer's share for a specific commodity
+- `POST /api/analysis/margins/batch` - Calculate margins for multiple commodities
+
+### Trend Analysis
+- `GET /api/analysis/trends/{commodity}` - Get price trend analysis for a commodity over time
+- `GET /api/analysis/trends/comparison` - Compare trends between farmgate and retail prices
+
+### Causality Testing
+- `GET /api/analysis/causality/{commodity}` - Perform Granger causality test between farmgate and retail prices for a commodity
+- `POST /api/analysis/causality/multiple` - Run causality tests for multiple commodities
+
+All endpoints return JSON responses with detailed analysis results, including statistical metrics and visualizations where applicable.
 ```
 then open: 
 http://127.0.0.1:8000/docs
 
 ---
-## 📊 API Endpoints & Features
+## API Endpoints & Features
 
 ### 1. Marketing Margin Analysis
 **Endpoint:** `/analysis/margin/{commodity}`  
@@ -85,7 +140,7 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## 📈 Economic Significance
+## Economic Significance
 
 This system helps identify:
 
@@ -93,15 +148,15 @@ This system helps identify:
 - **Price Rigidity** → Retail prices remain high despite falling farmgate prices  
 - **Food Security Risks** → Volatility in staple crops like rice (palay) and corn  
 
-## 📊 Dataset
+## Dataset
 
 - **Source**: Philippine Statistics Authority (PSA)  
 - **Coverage**: 2021–2025  
-- **Commodities**:  Rice, Corn, Coconut, Bananas, Pineapples, and Mangoes
+- **Commodities**:  Rice, Corn, Coconut, Bananas, Pineapples, Mangoes, and Cassava
 
 ---
 
-## 👨‍💻 Contributors
-- **ARONG** – 
-- **LOPEZ** - 
+## Contributors
+- **ARONG** – Lead Researcher
+- **LOPEZ** - Frontend Developer 
 - **LOSORATA** – Data Analyst & Backend Developer 
