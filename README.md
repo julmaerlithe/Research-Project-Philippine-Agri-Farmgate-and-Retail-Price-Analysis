@@ -1,14 +1,34 @@
 # AgriPulse PH: Agricultural Price Intelligence & Market Integration
 
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 ## Project Overview
 
 This project examines farmgate versus retail price transparency for major agricultural commodities in the Philippines from 2021 to 2025. Utilizing datasets from the Philippine Statistics Authority (PSA), the system analyzes price transmission mechanisms, marketing margins, and causal relationships between farmgate and retail prices to enhance supply chain transparency and inform policy decisions.
 
+## Quick Facts
+
+| **Aspect** | **Details** |
+|------------|-------------|
+| **Technical Stack** | Python 3.10+, FastAPI, Pandas, NumPy, Statsmodels |
+| **Dataset Coverage** | 2021–2025 PSA data for 8 major commodities |
+| **Key Commodities** | Banana, Mango, Pineapple, Coconut, Cassava, Ube, Palay, Corn |
+| **Analysis Methods** | Marketing Margin Analysis, Granger Causality Testing |
+
 ## Key Features
 
 - **Data Standardization**: Processes and standardizes raw PSA datasets into a unified format for consistent analysis.
-- **Marketing Margin Analysis**: Calculates marketing margins and farmer's share for key commodities including Banana, Mango, Pineapple, Coconut, Cassava, Palay, and Corn.
+- **Marketing Margin Analysis**: Calculates marketing margins and farmer's share for key commodities.
 - **Granger Causality Testing**: Applies statistical tests using Statsmodels to determine if changes in farmgate prices Granger-cause changes in retail prices, assessing price transmission efficiency.
+
+## Economic Significance
+
+- **Supply Chain Transparency**: Identifies inefficiencies in price transmission from farmgate to retail markets.
+- **Farmer Welfare**: Quantifies farmer's share in final retail prices to advocate for fair pricing policies.
+- **Policy Insights**: Provides data-driven evidence for agricultural market reforms in the Philippines.
+- **Market Integration**: Assesses how well farmgate price changes are reflected in retail prices over time.
 
 ## Project Structure
 
@@ -47,24 +67,24 @@ This project examines farmgate versus retail price transparency for major agricu
 ## Setup Instructions
 
 ### Prerequisites
-- Python 3.10 or higher
-- pip package manager
+- **Python**: 3.10 or higher
+- **Package Manager**: pip
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone <repository-url>
    cd philippine-agri-price-analysis
    ```
 
-2. Install backend dependencies:
+2. **Install backend dependencies**:
    ```bash
    cd backend
    pip install -r requirements.txt
    ```
 
-3. Install frontend dependencies:
+3. **Install frontend dependencies**:
    ```bash
    cd ../frontend
    pip install -r requirements.txt
@@ -72,13 +92,13 @@ This project examines farmgate versus retail price transparency for major agricu
 
 ### Running the Application
 
-1. Start the backend API:
+1. **Start the backend API**:
    ```bash
    cd backend
    python main.py
    ```
 
-2. Start the frontend (in a separate terminal):
+2. **Start the frontend** (in a separate terminal):
    ```bash
    cd frontend
    python main.py
@@ -91,12 +111,56 @@ The backend will be available at `http://localhost:8000` and the frontend at `ht
 The backend provides RESTful API endpoints under the `/api/analysis/` prefix for various analytical operations:
 
 ### Margin Analysis
-- `GET /api/analysis/margins/{commodity}` - Retrieve marketing margins and farmer's share for a specific commodity
-- `POST /api/analysis/margins/batch` - Calculate margins for multiple commodities
+```http
+GET /api/analysis/margins/{commodity}
+```
+Retrieve marketing margins and farmer's share for a specific commodity.
+
+```http
+POST /api/analysis/margins/batch
+```
+Calculate margins for multiple commodities.
 
 ### Trend Analysis
-- `GET /api/analysis/trends/{commodity}` - Get price trend analysis for a commodity over time
-- `GET /api/analysis/trends/comparison` - Compare trends between farmgate and retail prices
+```http
+GET /api/analysis/trends/{commodity}
+```
+Get price trend analysis for a commodity over time.
+
+```http
+GET /api/analysis/trends/comparison
+```
+Compare trends between farmgate and retail prices.
+
+### Causality Testing
+```http
+GET /api/analysis/causality/{commodity}
+```
+Perform Granger causality test between farmgate and retail prices for a commodity.
+
+```http
+POST /api/analysis/causality/multiple
+```
+Run causality tests for multiple commodities.
+
+## How to Interpret Results
+
+In the context of Granger causality testing for Philippine agricultural price transparency:
+
+- **Low p-value (< 0.05)**: Indicates strong evidence that farmgate price changes significantly predict retail price movements, suggesting efficient price transmission and good market integration.
+- **High p-value (≥ 0.05)**: Suggests weak or no causal relationship, potentially indicating market inefficiencies, information asymmetries, or external factors disrupting price transmission in the agricultural supply chain.
+
+## Contributors
+
+| **Name** | **Role** | **Affiliation** |
+|----------|----------|-----------------|
+| [Your Name] | Project Lead & Developer | [Your Institution] |
+| [Contributor 1] | Data Analyst | [Affiliation] |
+| [Contributor 2] | Backend Developer | [Affiliation] |
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ### Causality Testing
 - `GET /api/analysis/causality/{commodity}` - Perform Granger causality test between farmgate and retail prices for a commodity
