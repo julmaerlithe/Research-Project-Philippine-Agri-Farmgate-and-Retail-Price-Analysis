@@ -103,7 +103,7 @@ def all_commodity_margins():
     """
     try:
         data_service = current_app.config['data_service']
-        commodities = ['Banana', 'Mango', 'Pineapple', 'Coconut', 'Palay', 'Corn']
+        commodities = ['Banana', 'Mango', 'Pineapple', 'Coconut', 'Palay', 'Corn', 'Cassava']
         results = []
 
         for commodity in commodities:
