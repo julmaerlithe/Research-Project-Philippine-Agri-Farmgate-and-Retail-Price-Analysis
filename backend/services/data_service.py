@@ -5,6 +5,19 @@ import os
 
 class DataService:
     def __init__(self):
+        self.commodity_aliases = {
+            'palay': 'Rice',
+            'rice': 'Rice',
+            'banana': 'Banana',
+            'bananas': 'Banana',
+            'pineapple': 'Pineapple',
+            'pineapples': 'Pineapple',
+            'mango': 'Mango',
+            'mangoes': 'Mango',
+            'corn': 'Corn',
+            'coconut': 'Coconut',
+            'cassava': 'Cassava',
+        }
         self.data_path = os.path.join(
             os.path.dirname(__file__),
             '..',
@@ -22,8 +35,16 @@ class DataService:
             months = df_raw.iloc[1, 2:].tolist()
             date_cols = [f"{y}-{m}" for y, m in zip(years, months)]
 
-            target_commodities = ['COCONUT', 'BANANA', 'MANGO', 'PINEAPPLE',
-                                   'CASSAVA', 'UBE', 'PALAY', 'CORN']
+            target_commodities = {
+                'COCONUT': 'Coconut',
+                'BANANA': 'Banana',
+                'MANGO': 'Mango',
+                'PINEAPPLE': 'Pineapple',
+                'CASSAVA': 'Cassava',
+                'PALAY': 'Rice',
+                'CORN': 'Corn',
+            }
+            excluded_commodity_sections = {'UBE'}
             final_data = []
 
             current_parent = None
@@ -41,7 +62,10 @@ class DataService:
                     current_type = None
 
                 if item_name in target_commodities:
-                    current_parent = item_name.capitalize()
+                    current_parent = target_commodities[item_name]
+                    continue
+                if item_name in excluded_commodity_sections:
+                    current_parent = None
                     continue
 
                 if item_name in ['AVERAGE', 'MARGIN']:
@@ -109,6 +133,7 @@ class DataService:
     def get_commodity_data(self, commodity):
         if self.df_standardized is None:
             return None
+        commodity = self.commodity_aliases.get(commodity.lower(), commodity)
         commodity_data = self.df_standardized[
             self.df_standardized['Commodity'].str.lower() == commodity.lower()
         ]

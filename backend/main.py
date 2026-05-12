@@ -21,6 +21,7 @@ app.config['analytics_service'] = analytics_service
 
 app.register_blueprint(prices_bp)
 app.register_blueprint(analysis_bp)
+app.register_blueprint(analysis_bp, url_prefix='/analysis', name='analysis_direct')
 
 @app.route('/api/health', methods=['GET'])
 def health_check():

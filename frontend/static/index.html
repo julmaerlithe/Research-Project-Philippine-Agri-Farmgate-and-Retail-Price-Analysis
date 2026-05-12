@@ -3,843 +3,553 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agricultural Price Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>PH Agricultural Price Transmission Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --g900:#17390D;--g800:#2B5C1E;--g700:#3A7228;--g600:#4A8030;
-  --g500:#5C9840;--g400:#7AB85A;--g300:#A8D48A;--g200:#C8E8B0;
-  --g100:#E4F3D8;--g50:#F0F8E8;
-  --a600:#C8621A;--a500:#E07B39;--a400:#F0954A;--a200:#F7D4B0;--a100:#FDF3E8;
-  --cream:#F6F3EE;--white:#FFFFFF;
-  --t900:#18280F;--t700:#3A4E32;--t500:#5A6B52;--t400:#7A8B72;--t300:#9AAB92;
-  --border:#DDE8D4;--borderL:#EDF4E4;
+:root {
+  --bg: #f6f3ee;
+  --surface: #ffffff;
+  --surface2: #f0f7ea;
+  --border: #dce8d2;
+  --border2: #c8dcc0;
+  --text: #15240f;
+  --muted: #65765e;
+  --accent: #2f6f3e;
+  --accent2: #4d8a35;
+  --green: #2f7d32;
+  --red: #b42318;
+  --amber: #b65f1c;
+  --blue: #2f6690;
+  --sidebar-w: 240px;
 }
-body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--t900);min-height:100vh;display:flex;}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
 
-/* ── SIDEBAR ── */
-.sidebar{width:272px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:26px 18px 30px;position:fixed;left:0;top:0;overflow-y:auto;z-index:100;display:flex;flex-direction:column;gap:0;}
-.sb-brand{margin-bottom:22px;}
-.sb-brand h1{font-family:'Lora',serif;font-size:16.5px;font-weight:700;color:var(--g800);line-height:1.35;margin-bottom:4px;}
-.sb-brand p{font-size:11.5px;color:var(--t400);font-weight:400;}
-.sb-sep{height:1px;background:var(--borderL);margin:14px 0;}
-.ctl-label{font-size:11px;font-weight:600;color:var(--t400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+.sidebar-header{padding:22px 18px 14px;border-bottom:1px solid var(--border)}
+.sidebar-logo{font-family:'Merriweather',serif;font-size:16px;color:var(--accent);letter-spacing:0}
+.sidebar-sub{font-size:10.5px;color:var(--muted);margin-top:3px;font-family:'IBM Plex Mono',monospace;letter-spacing:.4px}
+.nav-section{padding:16px 12px 7px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;margin:2px 8px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;border:1px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:#e7f3de;color:var(--accent);border-color:var(--border2)}
+.nav-icon{width:16px;height:16px;opacity:.75}
+.commodity-pills{padding:8px 10px}
+.cpill{padding:6px 12px;margin:3px 4px;border-radius:20px;font-size:11.5px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:#fff;transition:all .15s;display:inline-block}
+.cpill:hover{border-color:var(--accent);color:var(--accent)}
+.cpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.sidebar-footer{margin-top:auto;padding:15px 18px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;line-height:1.55}
 
-/* select */
-.commodity-wrap{position:relative;margin-bottom:20px;}
-.commodity-select{width:100%;padding:10px 36px 10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--white);font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;color:var(--t900);cursor:pointer;appearance:none;transition:border-color .2s,box-shadow .2s;}
-.commodity-select:focus{outline:none;border-color:var(--g600);box-shadow:0 0 0 3px rgba(74,128,48,.12);}
-.commodity-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--t400);pointer-events:none;}
+.main{margin-left:var(--sidebar-w);width:calc(100vw - var(--sidebar-w));min-width:0;padding:0}
+.topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;background:rgba(246,243,238,.94);position:sticky;top:0;z-index:50;backdrop-filter:blur(8px)}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text)}
+.topbar-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;background:#e7f3de;border:1px solid var(--border2);color:var(--accent);padding:4px 8px;border-radius:6px}
+.content{padding:22px 24px;display:none}
+.content.active{display:block}
 
-/* view toggle */
-.view-toggle{display:flex;background:var(--g50);border-radius:9px;padding:3px;border:1px solid var(--borderL);margin-bottom:6px;}
-.view-btn{flex:1;padding:8px 10px;border:none;border-radius:6px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .22s;background:transparent;color:var(--t400);}
-.view-btn.active{background:var(--g800);color:#fff;box-shadow:0 2px 8px rgba(43,92,30,.28);}
-.view-hint{font-size:11px;color:var(--t300);margin-bottom:20px;padding-left:2px;}
+.metrics-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.trend-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;min-width:0}
+.metric-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:7px}
+.metric-value{font-size:24px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--text);word-break:break-word}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}
+.metric-card.green .metric-value{color:var(--green)}
+.metric-card.red .metric-value{color:var(--red)}
+.metric-card.amber .metric-value{color:var(--amber)}
+.metric-card.blue .metric-value{color:var(--blue)}
 
-.toggle-row{display:flex;align-items:center;gap:9px;margin-bottom:20px;}
-.tlabel{font-size:13px;color:var(--t400);font-weight:400;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:18px;min-width:0}
+.chart-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px}
+.chart-title{font-size:15px;font-weight:700;color:var(--text);font-family:'Merriweather',serif}
+.chart-desc{font-size:12px;color:var(--muted);margin-top:2px}
+.chart-wrap{position:relative;width:100%;min-width:0}
+.two-col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
 
-.sw{position:relative;width:42px;height:23px;flex-shrink:0;}
-.sw input{opacity:0;width:0;height:0;position:absolute;}
-.sw-track{position:absolute;cursor:pointer;inset:0;background:#B0BEC5;border-radius:23px;transition:background .25s;}
-.sw-track::before{content:'';position:absolute;height:17px;width:17px;left:3px;bottom:3px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:transform .25s;}
-.sw input:checked + .sw-track{background:var(--g700);}
-.sw input:checked + .sw-track::before{transform:translateX(19px);}
-.sw input:disabled + .sw-track{opacity:0.4;cursor:not-allowed;}
+.granger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.granger-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;min-width:0}
+.granger-title{font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.badge.sig{background:#e7f5e8;border:1px solid #b8dfbd;color:var(--green)}
+.badge.nosig{background:#fff1f0;border:1px solid #f2c4bf;color:var(--red)}
+.pval-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px}
+.pval-lag{color:var(--muted);font-family:'IBM Plex Mono',monospace;min-width:45px;font-size:11px}
+.pval-bar-wrap{flex:1;background:#edf2e8;border-radius:4px;height:7px}
+.pval-bar{height:7px;border-radius:4px;transition:width .6s ease}
+.pval-bar.sig{background:var(--green)}
+.pval-bar.nosig{background:#9aa794}
+.pval-num{font-family:'IBM Plex Mono',monospace;font-size:11px;min-width:50px;text-align:right}
+.pval-num.sig{color:var(--green)}
+.pval-num.nosig{color:var(--muted)}
 
-/* slider */
-.sl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
-.sl-val{font-weight:700;color:var(--g700);}
-.range-sl{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;outline:none;cursor:pointer;margin-bottom:7px;background:linear-gradient(to right,var(--g700) 0%,var(--g700) 100%,var(--border) 100%,var(--border) 100%);}
-.range-sl::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--g700);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.2);cursor:pointer;}
-.range-sl::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--g700);border:2px solid #fff;cursor:pointer;}
-.sl-hint{font-size:11px;color:var(--t300);}
+.comm-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.comm-btn{padding:7px 14px;border-radius:7px;font-size:12.5px;cursor:pointer;border:1px solid var(--border2);color:var(--muted);background:#fff;transition:all .15s;font-family:'Source Sans 3',sans-serif}
+.comm-btn:hover{border-color:var(--accent);color:var(--text)}
+.comm-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.interp-box{background:#eef7e8;border:1px solid var(--border2);border-radius:9px;padding:13px 15px;font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.65}
+.interp-box strong{color:var(--accent)}
+.error-toast{position:fixed;right:20px;bottom:20px;background:#991b1b;color:#fff;border-radius:10px;padding:12px 14px;display:none;z-index:1000;font-size:13px;max-width:340px}
+.error-toast.show{display:block}
+.loading{position:fixed;inset:0;background:rgba(246,243,238,.75);display:flex;align-items:center;justify-content:center;z-index:999}
+.loading.hidden{display:none}
+.spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* about */
-.about-box{background:var(--g50);border:1px solid var(--borderL);border-radius:10px;padding:13px;margin-top:auto;}
-.about-box h4{font-size:13px;font-weight:600;color:var(--t700);margin-bottom:6px;font-family:'Lora',serif;}
-.about-box p{font-size:11.5px;color:var(--t500);line-height:1.65;}
-
-/* ── MAIN ── */
-.main{margin-left:272px;flex:1;padding:32px 32px 40px;min-width:0;}
-
-/* loading overlay */
-.loading-overlay{position:fixed;inset:0;background:rgba(246,243,238,.75);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(2px);transition:opacity .3s;}
-.loading-overlay.hidden{opacity:0;pointer-events:none;}
-.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--g700);border-radius:50%;animation:spin .7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* error toast */
-.error-toast{position:fixed;bottom:24px;right:24px;background:#991B1B;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:1000;display:none;max-width:320px;line-height:1.5;}
-.error-toast.show{display:block;}
-
-/* header */
-.mhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;gap:16px;}
-.mhdr-title h2{font-family:'Lora',serif;font-size:25px;font-weight:700;color:var(--t900);margin-bottom:4px;}
-.mhdr-title p{font-size:13px;color:var(--t500);}
-.mkt-badge{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:50px;font-size:13px;font-weight:600;border:1.5px solid;white-space:nowrap;position:relative;flex-shrink:0;}
-.mkt-badge.ok{background:var(--g50);border-color:var(--g300);color:var(--g800);}
-.mkt-badge.no{background:#FEF2F2;border-color:#FECACA;color:#991B1B;}
-.badge-pval{position:absolute;bottom:-18px;right:4px;font-size:10.5px;font-weight:400;color:var(--t400);}
-.badge-check{font-size:14px;}
-.info-icon{width:16px;height:16px;border-radius:50%;background:var(--a400);color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;cursor:help;position:relative;flex-shrink:0;}
-.info-icon.show{display:flex;}
-.info-tip{display:none;position:absolute;top:calc(100% + 8px);right:-8px;background:var(--t900);color:#fff;font-size:11px;font-weight:400;padding:9px 12px;border-radius:9px;width:230px;line-height:1.55;z-index:200;white-space:normal;}
-.info-icon:hover .info-tip{display:block;}
-
-/* stat cards */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
-.sc{background:var(--white);border:1px solid var(--borderL);border-radius:13px;padding:18px 18px 16px;position:relative;transition:box-shadow .2s,transform .18s;}
-.sc:hover{box-shadow:0 5px 22px rgba(43,92,30,.09);transform:translateY(-1px);}
-.sc.sg{background:var(--g50);border-color:var(--g200);}
-.sc.sa{background:var(--a100);border-color:var(--a200);}
-.sc-label{font-size:11.5px;color:var(--t400);font-weight:400;margin-bottom:10px;}
-.sc-ico{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-.sc-ico.g{background:var(--g100);}
-.sc-ico.a{background:#F7E4CC;}
-.sc-ico.n{background:#F0F2EE;}
-.sc-ico svg{width:16px;height:16px;}
-.sc-val{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--t900);margin-bottom:3px;display:flex;align-items:baseline;gap:4px;}
-.sc-up{font-size:14px;color:var(--g600);font-weight:600;font-family:'Outfit',sans-serif;}
-.sc-sub{font-size:11.5px;color:var(--t400);}
-
-/* chart cards */
-.cc{background:var(--white);border:1px solid var(--borderL);border-radius:13px;padding:22px;margin-bottom:18px;}
-.cc-title{font-family:'Lora',serif;font-size:15.5px;font-weight:700;color:var(--t900);margin-bottom:16px;}
-.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
-.chart-scroll-outer{overflow:hidden;border-radius:6px;}
-.chart-scroll-inner{overflow-x:auto;overflow-y:hidden;padding-bottom:6px;}
-.chart-scroll-inner::-webkit-scrollbar{height:5px;}
-.chart-scroll-inner::-webkit-scrollbar-track{background:var(--g50);border-radius:5px;}
-.chart-scroll-inner::-webkit-scrollbar-thumb{background:var(--g300);border-radius:5px;}
-.chart-wrap{position:relative;}
-.chart-legend{display:flex;align-items:center;gap:18px;margin-top:14px;flex-wrap:wrap;}
-.leg-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--t500);}
-.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.leg-dot.g{background:var(--g700);}
-.leg-dot.a{background:var(--a400);}
-
-/* granger */
-.gc{background:var(--white);border:1px solid var(--borderL);border-radius:13px;padding:22px;margin-bottom:18px;}
-.gc-title{font-family:'Lora',serif;font-size:15.5px;font-weight:700;color:var(--t900);margin-bottom:16px;}
-.gc-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--borderL);font-size:14px;}
-.gc-row:last-of-type{border-bottom:none;}
-.gc-lbl{color:var(--t500);}
-.gc-val{font-weight:600;color:var(--t900);}
-.gc-note{background:var(--g50);border:1px solid var(--g200);border-radius:9px;padding:13px 15px;font-size:13px;color:var(--g800);margin-top:14px;display:flex;align-items:flex-start;gap:8px;}
-.gc-note.warn{background:#FFFBEB;border-color:#FDE68A;color:#92400E;}
-.gc-note-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
-.gc-lag-list{margin-top:12px;font-size:13px;color:var(--t500);}
-.gc-lag-list-label{font-weight:600;color:var(--t700);margin-bottom:6px;}
-.gc-lag-list ul{padding-left:18px;margin:4px 0 0;}
-.gc-lag-list li{margin-bottom:4px;}
+@media (max-width:1100px){
+  .metrics-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .trend-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .two-col,.granger-grid{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  body{display:block}
+  .sidebar{position:relative;width:100%;height:auto;min-height:auto}
+  .main{margin-left:0;width:100%}
+  .metrics-row{grid-template-columns:1fr}
+  .trend-metrics{grid-template-columns:1fr}
+  .content{padding:18px 14px}
+  .topbar{padding:0 14px;flex-wrap:wrap;height:auto;min-height:56px}
+}
 </style>
 </head>
 <body>
-
-<!-- Loading overlay -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-spinner"></div>
-</div>
-
-<!-- Error toast -->
+<div class="loading" id="loading"><div class="spinner"></div></div>
 <div class="error-toast" id="errorToast"></div>
 
-<!-- ══ SIDEBAR ══ -->
-<aside class="sidebar">
-  <div class="sb-brand">
-    <h1>Agricultural Price Analysis</h1>
-    <p>Monitor price gaps and market integration</p>
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">AgriPrice Analytics</div>
+    <div class="sidebar-sub">Philippines 2021-2025</div>
+  </div>
+  <div class="nav-section">Analysis</div>
+  <div class="nav-item active" onclick="showView('overview')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Overview
+  </div>
+  <div class="nav-item" onclick="showView('margin')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Marketing Margins
+  </div>
+  <div class="nav-item" onclick="showView('trends')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    Time-Series Trends
+  </div>
+  <div class="nav-item" onclick="showView('granger')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="3" cy="6" r="2"/><circle cx="21" cy="6" r="2"/><circle cx="21" cy="18" r="2"/><line x1="5" y1="7" x2="10" y2="11"/><line x1="14" y1="13" x2="19" y2="7"/><line x1="14" y1="13" x2="19" y2="17"/></svg>
+    Granger Causality
+  </div>
+  <div class="nav-section">Commodity</div>
+  <div class="commodity-pills" id="sidebar-pills"></div>
+  <div class="sidebar-footer">
+    Data: PSA Philippines<br>
+    Margin: Retail - Farmgate<br>
+    Share: Farmgate / Retail x 100
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="view-title">Dashboard Overview</span>
+    <span class="topbar-badge" id="view-badge">Loading data...</span>
   </div>
 
-  <div class="sb-sep"></div>
+  <div class="content active" id="view-overview">
+    <div class="metrics-row" id="overview-metrics"></div>
 
-  <div class="ctl-label">Commodity</div>
-  <div class="commodity-wrap">
-    <select class="commodity-select" id="commoditySelect">
-      <option value="Banana">Banana</option>
-      <option value="Mango" selected>Mango</option>
-      <option value="Pineapple">Pineapple</option>
-      <option value="Coconut">Coconut</option>
-      <option value="Palay">Palay</option>
-      <option value="Corn">Corn</option>
-      <option value="Cassava">Cassava</option>
-    </select>
-  </div>
-
-  <div class="ctl-label">View Mode</div>
-  <div class="view-toggle">
-    <button class="view-btn active" id="btnTimeline" onclick="setView('timeline')">Timeline</button>
-    <button class="view-btn" id="btnSeasonal" onclick="setView('seasonal')">Seasonal</button>
-  </div>
-  <p class="view-hint" id="viewHint">Full 2021–2025 progression</p>
-
-  <div class="sb-sep"></div>
-
-  <div class="ctl-label">Time Aggregation</div>
-  <div class="toggle-row">
-    <span class="tlabel" id="lblMonthly" style="color:var(--t900);font-weight:600;">Monthly</span>
-    <label class="sw">
-      <input type="checkbox" id="aggToggle" onchange="setAggregation(this.checked)">
-      <span class="sw-track"></span>
-    </label>
-    <span class="tlabel" id="lblYearly">Yearly</span>
-  </div>
-
-  <div class="sb-sep"></div>
-
-  <div class="sl-header ctl-label" style="display:flex;text-transform:uppercase;letter-spacing:.07em;">
-    <span>Granger Causality Max Lag: </span>
-    <span class="sl-val" id="lagVal" style="margin-left:4px;">3</span>
-  </div>
-  <input type="range" class="range-sl" id="lagSlider" min="1" max="3" value="3" oninput="setLag(this.value)">
-  <p class="sl-hint">Controls sensitivity of price transmission analysis</p>
-
-  <div class="sb-sep"></div>
-
-  <div class="about-box">
-    <h4>About This Dashboard</h4>
-    <p>This tool helps identify inefficiencies in agricultural supply chains by comparing farmgate and retail prices across Philippine commodities (2021–2025).</p>
-  </div>
-</aside>
-
-<!-- ══ MAIN ══ -->
-<main class="main">
-
-  <div class="mhdr">
-    <div class="mhdr-title">
-      <h2>AgriPulse PH: Agricultural Price Intelligence & Market Integration</h2>
-      <p id="mainSubtitle">Analyzing price transmission and marketing margins for Mango</p>
-    </div>
-    <div class="mkt-badge ok" id="mktBadge">
-      <span class="badge-check">✓</span>
-      <span id="badgeText">Market Integrated</span>
-      <span class="info-icon" id="infoIcon">
-        i
-        <span class="info-tip">Statistical analysis is calculated based on the full 5-year timeline to ensure accuracy.</span>
-      </span>
-      <span class="badge-pval" id="badgePval">p-value: —</span>
-    </div>
-  </div>
-
-  <div class="stats-grid">
-    <div class="sc sg">
-      <div class="sc-label">Farmer's Share</div>
-      <div class="sc-ico g">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#4A8030" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-      </div>
-      <div class="sc-val"><span id="statShare">—</span> <span class="sc-up">↑</span></div>
-      <div class="sc-sub">of retail price</div>
-    </div>
-    <div class="sc sa">
-      <div class="sc-label">Average Margin</div>
-      <div class="sc-ico a">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#E07B39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      </div>
-      <div class="sc-val">₱<span id="statMargin">—</span></div>
-      <div class="sc-sub">per kilogram</div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">Farmgate Price</div>
-      <div class="sc-ico n">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#5A6B52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      </div>
-      <div class="sc-val">₱<span id="statFG">—</span></div>
-      <div class="sc-sub">avg per kg</div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">Retail Price</div>
-      <div class="sc-ico n">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#5A6B52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      </div>
-      <div class="sc-val">₱<span id="statRetail">—</span></div>
-      <div class="sc-sub">avg per kg</div>
-    </div>
-  </div>
-
-  <div class="cc">
-    <div class="cc-title">Farmgate vs. Retail Price Trend</div>
-    <div class="chart-scroll-outer">
-      <div class="chart-scroll-inner" id="priceScrollInner">
-        <div class="chart-wrap" id="priceChartWrap">
-          <canvas id="priceChart"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="chart-legend">
-      <div class="leg-item"><div class="leg-dot g"></div> Farmer receives this amount</div>
-      <div class="leg-item"><div class="leg-dot a"></div> Marketing margin (middlemen, transport, retail)</div>
-    </div>
-  </div>
-
-  <div class="chart-row">
-    <div class="cc" style="margin-bottom:0">
-      <div class="cc-title">Farmer's Share Trend</div>
-      <div class="chart-scroll-outer">
-        <div class="chart-scroll-inner" id="shareScrollInner">
-          <div class="chart-wrap" id="shareChartWrap">
-            <canvas id="shareChart"></canvas>
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Average Marketing Margin by Commodity</div>
+            <div class="chart-desc">Peso per kg, computed as Retail - Farmgate</div>
           </div>
         </div>
+        <div class="chart-wrap" style="height:260px"><canvas id="marginBarChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Farmer's Share of Retail Price</div>
+            <div class="chart-desc">Farmgate / Retail x 100</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:260px"><canvas id="shareBarChart"></canvas></div>
       </div>
     </div>
-    <div class="cc" style="margin-bottom:0">
-      <div class="cc-title">Average Marketing Margin by Commodity</div>
-      <div class="chart-wrap">
-        <canvas id="marginChart" height="220"></canvas>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Granger Causality Summary - Farmgate to Retail</div>
+          <div class="chart-desc">Minimum p-value across available lags. Threshold: 0.05</div>
+        </div>
       </div>
+      <div id="granger-overview-list" style="padding:4px 0"></div>
     </div>
   </div>
 
-  <div class="gc" style="margin-top:18px;">
-    <div class="gc-title">Granger Causality Analysis</div>
-    <div class="gc-row"><span class="gc-lbl">Test Status:</span><span class="gc-val" id="gcStatus">—</span></div>
-    <div class="gc-row"><span class="gc-lbl">P-Value:</span><span class="gc-val" id="gcPval">—</span></div>
-    <div class="gc-row"><span class="gc-lbl">Optimal Lag:</span><span class="gc-val" id="gcLag">—</span></div>
-    <div class="gc-note" id="gcNote">
-      <span class="gc-note-icon">✓</span>
-      <span id="gcNoteText">Loading analysis…</span>
+  <div class="content" id="view-margin">
+    <div class="comm-selector" id="margin-comm-sel"></div>
+    <div class="metrics-row" id="margin-metrics"></div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title" id="margin-chart-title">Monthly Farmgate vs Retail Price</div>
+          <div class="chart-desc">Peso per kg, 2021 to 2025</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:290px"><canvas id="marginLineChart"></canvas></div>
     </div>
-    <div class="gc-lag-list" id="gcLagListWrap">
-      <div class="gc-lag-list-label">Lag-specific p-values:</div>
-      <ul id="gcPvalList"></ul>
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">Marketing Margin Over Time</div><div class="chart-desc">Retail - Farmgate</div></div></div>
+        <div class="chart-wrap" style="height:220px"><canvas id="marginGapChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">Farmer's Share Over Time</div><div class="chart-desc">Percent of retail price</div></div></div>
+        <div class="chart-wrap" style="height:220px"><canvas id="shareLineChart"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">Yearly Average Comparison</div><div class="chart-desc">Farmgate vs Retail by year</div></div></div>
+      <div class="chart-wrap" style="height:240px"><canvas id="yearlyBarChart"></canvas></div>
     </div>
   </div>
 
-</main>
+  <div class="content" id="view-trends">
+    <div class="metrics-row trend-metrics" id="trend-metrics"></div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">All-Commodity Price Trends</div><div class="chart-desc">Monthly averages across commodities</div></div></div>
+      <div class="chart-wrap" style="height:300px"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">Commodity Price Trends</div><div class="chart-desc">Yearly average farmgate price per commodity</div></div></div>
+      <div class="chart-wrap" style="height:280px"><canvas id="multiCommChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">Yearly Margin Growth by Commodity</div><div class="chart-desc">Marketing margin per kg per year</div></div></div>
+      <div class="chart-wrap" style="height:270px"><canvas id="yearlyMarginChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="content" id="view-granger">
+    <div class="interp-box" style="margin-bottom:18px">
+      <strong>Granger Causality Test</strong> - H0: Farmgate prices do not Granger-cause retail prices.
+      A <strong>p-value &lt; 0.05</strong> rejects H0 and indicates statistically meaningful price transmission.
+    </div>
+    <div class="granger-grid" id="granger-cards"></div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">P-value by Commodity and Lag</div><div class="chart-desc">Lower values indicate stronger evidence of price transmission.</div></div></div>
+      <div class="chart-wrap" style="height:280px"><canvas id="grangerHeatChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div><div class="chart-title">Farmer's Share vs Price Transmission</div><div class="chart-desc">Farmer share plotted against minimum Granger p-value.</div></div></div>
+      <div class="chart-wrap" style="height:260px"><canvas id="scatterChart"></canvas></div>
+    </div>
+  </div>
+</div>
 
 <script>
-// ─────────────────────────────────────────────────────────────────
-// CONFIG
-// ─────────────────────────────────────────────────────────────────
-const API_BASE = 'http://localhost:5000/api';
-const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const MONTHS_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const API_BASE = window.location.port === '5000'
+  ? '/api'
+  : `${window.location.protocol}//${window.location.hostname}:5000/api`;
 
-// ─────────────────────────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────────────────────────
-let state = { commodity: 'Mango', view: 'timeline', yearly: false, maxLag: 3 };
+const COLORS = {
+  Banana:'#d4a22a', Cassava:'#6fa34f', Coconut:'#3b8b73',
+  Corn:'#d97924', Mango:'#c9483d', Pineapple:'#7b5fb2',
+  Rice:'#557d99'
+};
+const AXIS = '#65765e';
+const GRID = '#e6eee0';
+let DATA = {commodities:[], margin:{}, granger:{}, trends:[], yearly:{}};
+let currentComm = '';
 let charts = {};
 
-// Cache raw monthly API data per commodity so we can derive yearly/seasonal client-side
-// without extra round-trips. Structure: { Mango: [{date,farmgate,retail,margin,farmer_share}, …] }
-const dataCache = {};
-
-// Cache bar-chart data (all-commodity averages) — fetched once
-let allMarginsCache = null;
-
-// ─────────────────────────────────────────────────────────────────
-// LOADING / ERROR UI
-// ─────────────────────────────────────────────────────────────────
-function showLoading(on) {
-  document.getElementById('loadingOverlay').classList.toggle('hidden', !on);
+function setLoading(on){document.getElementById('loading').classList.toggle('hidden', !on)}
+function showError(message){
+  const el = document.getElementById('errorToast');
+  el.textContent = message;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4500);
 }
-
-function showError(msg) {
-  const t = document.getElementById('errorToast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 4000);
-}
-
-// ─────────────────────────────────────────────────────────────────
-// API HELPERS
-// ─────────────────────────────────────────────────────────────────
-async function fetchMarginData(commodity) {
-  if (dataCache[commodity]) return dataCache[commodity];
-
-  const res = await fetch(`${API_BASE}/analysis/margin/${encodeURIComponent(commodity)}`);
-  if (!res.ok) throw new Error(`API error ${res.status} for ${commodity}`);
-  const json = await res.json();
-
-  // Sort by date ascending
-  const rows = (json.data || []).sort((a, b) => a.date.localeCompare(b.date));
-  dataCache[commodity] = rows;
-  return rows;
-}
-
-async function fetchGrangerData(commodity, maxLag) {
-  const url = `${API_BASE}/analysis/causality/${encodeURIComponent(commodity)}?max_lag=${maxLag}`;
-  console.debug('Fetching Granger causality:', url);
-  const res = await fetch(url);
-  let json;
-  try {
-    json = await res.json();
-  } catch (err) {
-    throw new Error(`Granger API returned invalid JSON: ${err.message}`);
-  }
-
-  if (!res.ok) {
-    throw new Error(`Granger API error ${res.status}: ${json?.detail || json?.error || res.statusText}`);
-  }
-
-  if (json.status !== 'Success') {
-    throw new Error(json.detail || json.error || `Granger endpoint returned status ${json.status}`);
-  }
-
-  return json;
-}
-
-async function fetchAllMargins() {
-  if (allMarginsCache) return allMarginsCache;
-  const res = await fetch(`${API_BASE}/analysis/margins/all`);
-  if (!res.ok) throw new Error(`Margins API error ${res.status}`);
-  const json = await res.json();
-  allMarginsCache = json.data || [];
-  return allMarginsCache;
-}
-
-// ─────────────────────────────────────────────────────────────────
-// DATA TRANSFORMS  (monthly rows → view-specific arrays)
-// ─────────────────────────────────────────────────────────────────
-
-/**
- * Parse "YYYY-MM" into {year, month0} where month0 is 0-based.
- */
-function parseDate(str) {
-  const [y, m] = str.split('-');
-  return { year: +y, month0: +m - 1 };
-}
-
-function labelFromDate(str) {
-  const { year, month0 } = parseDate(str);
-  return `${MONTHS_SHORT[month0]} '${String(year).slice(2)}`;
-}
-
-function tooltipTitleFromIndex(idx, viewData) {
-  if (state.view === 'seasonal') return MONTHS_FULL[idx] || '';
-  if (state.yearly) return viewData.labels[idx];
-
-  // Monthly: derive from date string stored alongside
-  const { year, month0 } = parseDate(viewData.dates[idx]);
-  return `${MONTHS_FULL[month0]} ${year}`;
-}
-
-/** Monthly view — one point per data row */
-function toMonthlyView(rows) {
+function destroyChart(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
+function peso(value){ return `₱${Number(value || 0).toFixed(2)}`; }
+function pct(value){ return `${Number(value || 0).toFixed(1)}%`; }
+function avg(values){ return values.length ? values.reduce((sum, value) => sum + Number(value || 0), 0) / values.length : 0; }
+function minP(granger){ return granger?.min_p_value ?? Math.min(...Object.values(granger?.p_values || {1:1}).map(Number)); }
+function significant(granger){ return Boolean(granger?.significant ?? granger?.is_significant ?? minP(granger) < 0.05); }
+function chartBase(extra = {}){
   return {
-    labels: rows.map(r => labelFromDate(r.date)),
-    dates:  rows.map(r => r.date),
-    fg:     rows.map(r => r.farmgate),
-    retail: rows.map(r => r.retail),
-    margin: rows.map(r => r.margin),
-    share:  rows.map(r => r.farmer_share),
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:AXIS,boxWidth:12,font:{size:11}}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:AXIS,maxRotation:45,minRotation:0}},
+      y:{grid:{color:GRID},ticks:{color:AXIS}}
+    },
+    ...extra
   };
 }
 
-/** Yearly view — average the 12 months of each year */
-function toYearlyView(rows) {
+async function loadDashboardData(){
+  const response = await fetch(`${API_BASE}/analysis/dashboard-data?max_lag=3`);
+  if(!response.ok) throw new Error(`Backend returned ${response.status}`);
+  DATA = await response.json();
+  currentComm = DATA.commodities[0] || '';
+  document.getElementById('view-badge').textContent = `${DATA.commodities.length} commodities · ${DATA.trends.length} months`;
+}
+
+function showView(v){
+  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`view-${v}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')===`showView('${v}')`) n.classList.add('active');
+  });
+  const titles={overview:'Dashboard Overview',margin:'Marketing Margin Analysis',trends:'Time-Series Trends',granger:'Granger Causality Test'};
+  document.getElementById('view-title').textContent=titles[v];
+  if(v==='trends') buildTrendCharts();
+  if(v==='granger') buildGrangerView();
+}
+
+function buildSidebarPills(){
+  const el=document.getElementById('sidebar-pills');
+  el.innerHTML='';
+  DATA.commodities.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='cpill'+(c===currentComm?' active':'');
+    d.textContent=c;
+    d.onclick=()=>selectComm(c);
+    el.appendChild(d);
+  });
+}
+
+function selectComm(c){
+  currentComm=c;
+  document.querySelectorAll('.cpill,.comm-btn').forEach(el=>{
+    el.classList.toggle('active', el.textContent===c);
+  });
+  buildMarginView();
+}
+
+function buildOverview(){
+  const comms=DATA.commodities;
+  const margins=comms.map(c=>DATA.margin[c].avg_margin);
+  const shares=comms.map(c=>DATA.margin[c].avg_farmers_share);
+  const significantCount=comms.filter(c=>significant(DATA.granger[c])).length;
+  const highest=comms.reduce((best,c)=>DATA.margin[c].avg_margin > DATA.margin[best].avg_margin ? c : best, comms[0]);
+
+  document.getElementById('overview-metrics').innerHTML=`
+    <div class="metric-card amber"><div class="metric-label">Avg Marketing Margin</div><div class="metric-value">${peso(avg(margins))}</div><div class="metric-sub">Retail minus farmgate</div></div>
+    <div class="metric-card blue"><div class="metric-label">Avg Farmer's Share</div><div class="metric-value">${pct(avg(shares))}</div><div class="metric-sub">Of retail price</div></div>
+    <div class="metric-card green"><div class="metric-label">Granger Significant</div><div class="metric-value">${significantCount} / ${comms.length}</div><div class="metric-sub">p &lt; 0.05</div></div>
+    <div class="metric-card red"><div class="metric-label">Highest Margin</div><div class="metric-value">${peso(DATA.margin[highest].avg_margin)}</div><div class="metric-sub">${highest} average</div></div>`;
+
+  destroyChart('marginBarChart');
+  charts.marginBarChart=new Chart(document.getElementById('marginBarChart'),{
+    type:'bar',
+    data:{labels:comms,datasets:[{label:'Avg Margin',data:margins,backgroundColor:comms.map(c=>COLORS[c]+'bb'),borderColor:comms.map(c=>COLORS[c]),borderWidth:1}]},
+    options:chartBase({plugins:{legend:{display:false}},scales:{y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>'₱'+v}},x:{grid:{display:false},ticks:{color:AXIS}}}})
+  });
+  destroyChart('shareBarChart');
+  charts.shareBarChart=new Chart(document.getElementById('shareBarChart'),{
+    type:'bar',
+    data:{labels:comms,datasets:[{label:"Farmer's Share",data:shares,backgroundColor:comms.map(c=>COLORS[c]+'88'),borderColor:comms.map(c=>COLORS[c]),borderWidth:1}]},
+    options:chartBase({plugins:{legend:{display:false}},scales:{y:{max:100,grid:{color:GRID},ticks:{color:AXIS,callback:v=>v+'%'}},x:{grid:{display:false},ticks:{color:AXIS}}}})
+  });
+
+  const el=document.getElementById('granger-overview-list');
+  el.innerHTML='';
+  comms.forEach(c=>{
+    const g=DATA.granger[c];
+    const p=minP(g);
+    const sig=significant(g);
+    const width=Math.max(2,Math.min(100,(1-p)*100));
+    el.innerHTML+=`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #e7eee2">
+      <span style="width:90px;font-size:13px;color:var(--text);font-weight:600">${c}</span>
+      <span class="badge ${sig?'sig':'nosig'}">${sig?'p < 0.05':'p >= 0.05'}</span>
+      <div style="flex:1;background:#edf2e8;border-radius:4px;height:8px"><div style="width:${width.toFixed(1)}%;height:8px;border-radius:4px;background:${sig?'var(--green)':'#9aa794'}"></div></div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:${sig?'var(--green)':'var(--muted)'};min-width:68px;text-align:right">p=${Number(p).toFixed(4)}</span>
+      <span style="font-size:11px;color:var(--muted);max-width:220px">${g.interpretation || ''}</span>
+    </div>`;
+  });
+}
+
+function buildMarginCommSelector(){
+  const el=document.getElementById('margin-comm-sel');
+  el.innerHTML='';
+  DATA.commodities.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='comm-btn'+(c===currentComm?' active':'');
+    b.textContent=c;
+    b.onclick=()=>selectComm(c);
+    el.appendChild(b);
+  });
+}
+
+function buildMarginView(){
+  if(!currentComm) return;
+  const d=DATA.margin[currentComm];
+  const g=DATA.granger[currentComm];
+  buildMarginCommSelector();
+  document.getElementById('margin-chart-title').textContent=`${currentComm} - Monthly Farmgate vs Retail`;
+  document.getElementById('margin-metrics').innerHTML=`
+    <div class="metric-card blue"><div class="metric-label">Avg Farmgate</div><div class="metric-value">${peso(d.avg_farmgate)}</div><div class="metric-sub">Per kg, 2021-2025</div></div>
+    <div class="metric-card red"><div class="metric-label">Avg Retail</div><div class="metric-value">${peso(d.avg_retail)}</div><div class="metric-sub">Per kg, 2021-2025</div></div>
+    <div class="metric-card amber"><div class="metric-label">Avg Margin</div><div class="metric-value">${peso(d.avg_margin)}</div><div class="metric-sub">${peso(d.min_margin)} to ${peso(d.max_margin)}</div></div>
+    <div class="metric-card ${d.avg_farmers_share>40?'green':'red'}"><div class="metric-label">Farmer's Share</div><div class="metric-value">${pct(d.avg_farmers_share)}</div><div class="metric-sub">${significant(g)?'Granger significant':'No significant transmission'}</div></div>`;
+
+  const labels=d.monthly.map(m=>m.date);
+  const fg=d.monthly.map(m=>m.farmgate);
+  const rt=d.monthly.map(m=>m.retail);
+  const mg=d.monthly.map(m=>m.margin);
+  const sh=d.monthly.map(m=>m.farmers_share);
+  const col=COLORS[currentComm] || '#4d8a35';
+
+  destroyChart('marginLineChart');
+  charts.marginLineChart=new Chart(document.getElementById('marginLineChart'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Retail',data:rt,borderColor:'#2f6690',backgroundColor:'rgba(47,102,144,0.08)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+      {label:'Farmgate',data:fg,borderColor:col,backgroundColor:'transparent',fill:false,tension:.3,pointRadius:0,borderWidth:2,borderDash:[6,3]}
+    ]},
+    options:chartBase({interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>'₱'+v}},x:{grid:{display:false},ticks:{color:AXIS,maxTicksLimit:12,autoSkip:true}}}})
+  });
+  destroyChart('marginGapChart');
+  charts.marginGapChart=new Chart(document.getElementById('marginGapChart'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Margin',data:mg,borderColor:'#d97924',backgroundColor:'rgba(217,121,36,0.16)',fill:true,tension:.3,pointRadius:0,borderWidth:2}]},
+    options:chartBase({plugins:{legend:{display:false}},scales:{y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>'₱'+v}},x:{grid:{display:false},ticks:{color:AXIS,maxTicksLimit:10,autoSkip:true}}}})
+  });
+  destroyChart('shareLineChart');
+  charts.shareLineChart=new Chart(document.getElementById('shareLineChart'),{
+    type:'line',
+    data:{labels,datasets:[{label:"Farmer's Share",data:sh,borderColor:'#2f7d32',backgroundColor:'rgba(47,125,50,0.12)',fill:true,tension:.3,pointRadius:0,borderWidth:2}]},
+    options:chartBase({plugins:{legend:{display:false}},scales:{y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>v+'%'}},x:{grid:{display:false},ticks:{color:AXIS,maxTicksLimit:10,autoSkip:true}}}})
+  });
+  const yd=DATA.yearly[currentComm] || [];
+  destroyChart('yearlyBarChart');
+  charts.yearlyBarChart=new Chart(document.getElementById('yearlyBarChart'),{
+    type:'bar',
+    data:{labels:yd.map(y=>y.year),datasets:[
+      {label:'Farmgate',data:yd.map(y=>y.farmgate),backgroundColor:col+'99',borderColor:col,borderWidth:1},
+      {label:'Retail',data:yd.map(y=>y.retail),backgroundColor:'rgba(47,102,144,0.48)',borderColor:'#2f6690',borderWidth:1}
+    ]},
+    options:chartBase({scales:{y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>'₱'+v}},x:{grid:{display:false},ticks:{color:AXIS}}}})
+  });
+}
+
+function buildTrendMetrics(){
   const byYear = {};
-  for (const r of rows) {
-    const yr = r.date.slice(0, 4);
-    if (!byYear[yr]) byYear[yr] = [];
-    byYear[yr].push(r);
-  }
-  const years = Object.keys(byYear).sort();
-  const avg = arr => +(arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2);
-
-  return {
-    labels: years,
-    dates:  years,
-    fg:     years.map(y => avg(byYear[y].map(r => r.farmgate))),
-    retail: years.map(y => avg(byYear[y].map(r => r.retail))),
-    margin: years.map(y => avg(byYear[y].map(r => r.margin))),
-    share:  years.map(y => avg(byYear[y].map(r => r.farmer_share))),
-  };
+  DATA.trends.forEach(row=>{
+    const year=String(row.date).slice(0,4);
+    byYear[year] ||= [];
+    byYear[year].push(row.avg_margin);
+  });
+  const years=Object.keys(byYear).sort();
+  const first=years[0], last=years[years.length-1];
+  const firstAvg=avg(byYear[first] || []);
+  const lastAvg=avg(byYear[last] || []);
+  const peak=DATA.trends.reduce((best,row)=>row.avg_margin > best.avg_margin ? row : best, DATA.trends[0]);
+  const change=firstAvg ? ((lastAvg-firstAvg)/firstAvg)*100 : 0;
+  document.getElementById('trend-metrics').innerHTML=`
+    <div class="metric-card blue"><div class="metric-label">${first} Avg Margin</div><div class="metric-value">${peso(firstAvg)}</div><div class="metric-sub">All commodities combined</div></div>
+    <div class="metric-card amber"><div class="metric-label">${last} Avg Margin</div><div class="metric-value">${peso(lastAvg)}</div><div class="metric-sub">${change>=0?'+':''}${change.toFixed(1)}% since ${first}</div></div>
+    <div class="metric-card red"><div class="metric-label">Peak Margin Month</div><div class="metric-value">${peak?.date || '-'}</div><div class="metric-sub">${peso(peak?.avg_margin)} avg across commodities</div></div>`;
 }
 
-/** Seasonal view — average across all years for each calendar month */
-function toSeasonalView(rows) {
-  const byMonth = Array.from({ length: 12 }, () => []);
-  for (const r of rows) {
-    const m0 = parseDate(r.date).month0;
-    byMonth[m0].push(r);
-  }
-  const avg = arr => arr.length ? +(arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2) : 0;
-
-  return {
-    labels: MONTHS_SHORT,
-    dates:  MONTHS_SHORT,
-    fg:     byMonth.map(g => avg(g.map(r => r.farmgate))),
-    retail: byMonth.map(g => avg(g.map(r => r.retail))),
-    margin: byMonth.map(g => avg(g.map(r => r.margin))),
-    share:  byMonth.map(g => avg(g.map(r => r.farmer_share))),
-  };
-}
-
-// ─────────────────────────────────────────────────────────────────
-// CHART SETUP
-// ─────────────────────────────────────────────────────────────────
-const GREEN_FILL   = 'rgba(58,114,40,0.70)';
-const GREEN_BORDER = '#3A7228';
-const AMBER_FILL   = 'rgba(240,149,74,0.72)';
-const AMBER_BORDER = '#E07B39';
-
-// Shared tooltip title helper — needs access to current viewData
-let _currentViewData = null;
-
-function makeCharts() {
-  const pCtx = document.getElementById('priceChart').getContext('2d');
-  charts.price = new Chart(pCtx, {
-    type: 'line',
-    data: { labels: [], datasets: [
-      { label: 'Farmgate Price', data: [], fill: true, backgroundColor: GREEN_FILL,
-        borderColor: GREEN_BORDER, borderWidth: 1.5, tension: .35,
-        pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: GREEN_BORDER },
-      { label: 'Marketing Margin', data: [], fill: '-1', backgroundColor: AMBER_FILL,
-        borderColor: AMBER_BORDER, borderWidth: 1.5, tension: .35,
-        pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: AMBER_BORDER },
+function buildTrendCharts(){
+  buildTrendMetrics();
+  const labels=DATA.trends.map(t=>t.date);
+  destroyChart('trendChart');
+  charts.trendChart=new Chart(document.getElementById('trendChart'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Avg Retail',data:DATA.trends.map(t=>t.avg_retail),borderColor:'#2f6690',backgroundColor:'rgba(47,102,144,0.08)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+      {label:'Avg Farmgate',data:DATA.trends.map(t=>t.avg_farmgate),borderColor:'#2f7d32',backgroundColor:'transparent',tension:.3,pointRadius:0,borderWidth:2,borderDash:[5,3]},
+      {label:'Avg Margin',data:DATA.trends.map(t=>t.avg_margin),borderColor:'#d97924',backgroundColor:'transparent',tension:.3,pointRadius:0,borderWidth:2,borderDash:[3,3]}
     ]},
-    options: {
-      responsive: false, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#18280F', titleColor: '#C8E8B0', bodyColor: '#fff',
-          padding: 10, cornerRadius: 8,
-          callbacks: {
-            title(items) { return _currentViewData ? tooltipTitleFromIndex(items[0].dataIndex, _currentViewData) : ''; },
-            label(item)  { return ` ${item.dataset.label}: ₱${item.raw.toFixed(2)}`; }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
-             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', maxRotation: 45, minRotation: 45 } },
-        y: { stacked: true, grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
-             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', callback: v => `₱${v}` }, min: 0 }
-      }
-    }
+    options:chartBase({interaction:{mode:'index',intersect:false},scales:{y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>'₱'+v}},x:{grid:{display:false},ticks:{color:AXIS,maxTicksLimit:14,autoSkip:true}}}})
   });
-
-  const sCtx = document.getElementById('shareChart').getContext('2d');
-  charts.share = new Chart(sCtx, {
-    type: 'line',
-    data: { labels: [], datasets: [
-      { label: "Farmer's Share", data: [], fill: false, borderColor: GREEN_BORDER,
-        borderWidth: 2, tension: .35, pointRadius: 0, pointHoverRadius: 5,
-        pointHoverBackgroundColor: GREEN_BORDER },
-      { label: 'Average', data: [], fill: false, borderColor: '#A8D48A',
-        borderWidth: 1.5, borderDash: [5, 4], tension: 0, pointRadius: 0, pointHoverRadius: 0 },
-    ]},
-    options: {
-      responsive: false, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#18280F', titleColor: '#C8E8B0', bodyColor: '#fff',
-          padding: 10, cornerRadius: 8,
-          filter(item) { return item.dataset.label !== 'Average'; },
-          callbacks: {
-            title(items) { return _currentViewData ? tooltipTitleFromIndex(items[0].dataIndex, _currentViewData) : ''; },
-            label(item)  { return ` Farmer's Share: ${item.raw.toFixed(1)}%`; }
-          }
-        }
-      },
-      scales: {
-        x: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
-             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', maxRotation: 45, minRotation: 45 } },
-        y: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
-             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', callback: v => `${v}%` },
-             min: 0, max: 100, suggestedMax: 100 }
-      }
-    }
+  const years=[...new Set(Object.values(DATA.yearly).flat().map(y=>y.year))].sort();
+  destroyChart('multiCommChart');
+  charts.multiCommChart=new Chart(document.getElementById('multiCommChart'),{
+    type:'line',
+    data:{labels:years,datasets:DATA.commodities.map(c=>({label:c,data:(DATA.yearly[c]||[]).map(y=>y.farmgate),borderColor:COLORS[c],backgroundColor:'transparent',tension:.3,pointRadius:4,borderWidth:2}))},
+    options:chartBase({scales:{y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>'₱'+v}},x:{grid:{display:false},ticks:{color:AXIS}}}})
   });
-
-  const mCtx = document.getElementById('marginChart').getContext('2d');
-  charts.margin = new Chart(mCtx, {
-    type: 'bar',
-    data: { labels: [], datasets: [{ label: 'Avg Margin', data: [],
-      backgroundColor: [], borderColor: [], borderWidth: 1,
-      borderRadius: 4, borderSkipped: false }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { backgroundColor: '#18280F', titleColor: '#C8E8B0', bodyColor: '#fff',
-          padding: 10, cornerRadius: 8,
-          callbacks: { label(item) { return ` Avg Margin: ₱${item.raw.toFixed(2)}/kg`; } }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72' } },
-        y: { grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
-             ticks: { font: { family: 'Outfit', size: 11 }, color: '#7A8B72', callback: v => `₱${v}` }, min: 0 }
-      }
-    }
+  destroyChart('yearlyMarginChart');
+  charts.yearlyMarginChart=new Chart(document.getElementById('yearlyMarginChart'),{
+    type:'bar',
+    data:{labels:years,datasets:DATA.commodities.map(c=>({label:c,data:(DATA.yearly[c]||[]).map(y=>y.margin),backgroundColor:COLORS[c]+'99',borderColor:COLORS[c],borderWidth:1}))},
+    options:chartBase({scales:{x:{grid:{display:false},ticks:{color:AXIS}},y:{grid:{color:GRID},ticks:{color:AXIS,callback:v=>'₱'+v}}}})
   });
 }
 
-// ─────────────────────────────────────────────────────────────────
-// RENDER HELPERS
-// ─────────────────────────────────────────────────────────────────
-function avg(arr) { return arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0; }
+function buildGrangerView(){
+  const el=document.getElementById('granger-cards');
+  el.innerHTML='';
+  DATA.commodities.forEach(c=>{
+    const g=DATA.granger[c];
+    const pvRows=Object.entries(g.p_values || {}).map(([lag,p])=>{
+      const value=Number(p);
+      const sig=value<0.05;
+      const barW=Math.max(2,Math.min(100,(1-value)*100));
+      return `<div class="pval-row"><span class="pval-lag">Lag ${lag}</span><div class="pval-bar-wrap"><div class="pval-bar ${sig?'sig':'nosig'}" style="width:${barW}%"></div></div><span class="pval-num ${sig?'sig':'nosig'}">${value.toFixed(4)}</span></div>`;
+    }).join('');
+    el.innerHTML+=`<div class="granger-card">
+      <div class="granger-title" style="color:${COLORS[c]}">${c} <span class="badge ${significant(g)?'sig':'nosig'}">${significant(g)?'Significant':'Not significant'}</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${g.interpretation || ''}</div>
+      ${pvRows || '<div style="font-size:12px;color:var(--muted)">No p-values available</div>'}
+    </div>`;
+  });
 
-function renderStats(vd) {
-  const avgFG     = avg(vd.fg);
-  const avgRet    = avg(vd.retail);
-  const avgMargin = avg(vd.margin);
-  const avgShare  = avg(vd.share);
+  const comms=DATA.commodities;
+  const lags=[...new Set(comms.flatMap(c=>Object.keys(DATA.granger[c]?.p_values || {})))].sort((a,b)=>Number(a)-Number(b));
+  destroyChart('grangerHeatChart');
+  charts.grangerHeatChart=new Chart(document.getElementById('grangerHeatChart'),{
+    type:'bar',
+    data:{labels:comms,datasets:lags.map((lag,index)=>({
+      label:`Lag ${lag}`,
+      data:comms.map(c=>DATA.granger[c]?.p_values?.[lag] ?? null),
+      backgroundColor:['rgba(47,102,144,.68)','rgba(47,125,50,.58)','rgba(217,121,36,.58)'][index] || 'rgba(101,118,94,.58)',
+      borderColor:['#2f6690','#2f7d32','#d97924'][index] || '#65765e',
+      borderWidth:1
+    }))},
+    options:chartBase({scales:{y:{max:1,grid:{color:GRID},ticks:{color:AXIS,callback:v=>Number(v).toFixed(2)}},x:{grid:{display:false},ticks:{color:AXIS}}}})
+  });
+  charts.grangerHeatChart.data.datasets.push({label:'p=0.05',data:new Array(comms.length).fill(0.05),type:'line',borderColor:'#b42318',borderWidth:1.5,borderDash:[4,4],pointRadius:0,fill:false});
+  charts.grangerHeatChart.update();
 
-  document.getElementById('statShare').textContent  = `${avgShare.toFixed(1)}%`;
-  document.getElementById('statMargin').textContent = avgMargin.toFixed(2);
-  document.getElementById('statFG').textContent     = avgFG.toFixed(2);
-  document.getElementById('statRetail').textContent = avgRet.toFixed(2);
+  destroyChart('scatterChart');
+  const scatterData=comms.map(c=>({x:DATA.margin[c].avg_farmers_share,y:minP(DATA.granger[c]),label:c}));
+  charts.scatterChart=new Chart(document.getElementById('scatterChart'),{
+    type:'scatter',
+    data:{datasets:[{label:'Commodities',data:scatterData,backgroundColor:comms.map(c=>COLORS[c]+'bb'),borderColor:comms.map(c=>COLORS[c]),pointRadius:8,pointHoverRadius:11}]},
+    options:chartBase({
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const d=scatterData[ctx.dataIndex];return `${d.label} - Share: ${d.x.toFixed(1)}%, p: ${d.y.toFixed(4)}`;}}}},
+      scales:{x:{title:{display:true,text:"Farmer's Share (%)",color:AXIS},grid:{color:GRID},ticks:{color:AXIS,callback:v=>v+'%'}},y:{title:{display:true,text:'Minimum p-value',color:AXIS},grid:{color:GRID},ticks:{color:AXIS},min:0,max:.5}}
+    })
+  });
+  charts.scatterChart.data.datasets.push({type:'line',label:'p=0.05',data:[{x:25,y:.05},{x:55,y:.05}],borderColor:'#b42318',borderDash:[4,4],pointRadius:0,borderWidth:1.5,fill:false});
+  charts.scatterChart.update();
 }
 
-function renderGranger(gr) {
-  const integrated = gr.is_significant;
-  const pVal       = gr.p_value != null ? Number(gr.p_value).toFixed(4) : '—';
-  const optLag     = gr.optimal_lag ?? '—';
-  const pValues    = gr.p_values || {};
-
-  document.getElementById('gcStatus').textContent = integrated ? 'Prices are integrated' : 'Prices are NOT integrated';
-  document.getElementById('gcPval').textContent   = pVal;
-  document.getElementById('gcLag').textContent    = optLag !== '—' ? `${optLag} period${optLag !== 1 ? 's' : ''}` : '—';
-  document.getElementById('badgePval').textContent= `p-value: ${pVal}`;
-
-  const pvalList = document.getElementById('gcPvalList');
-  pvalList.innerHTML = Object.keys(pValues).length > 0
-    ? Object.entries(pValues)
-        .sort((a, b) => parseInt(a[0].split('_')[1], 10) - parseInt(b[0].split('_')[1], 10))
-        .map(([lag, value]) => `<li>${lag.replace('lag_', 'Lag ')}: ${Number(value).toFixed(4)}</li>`)
-        .join('')
-    : '<li>No lag p-values available</li>';
-
-  const mktBadge  = document.getElementById('mktBadge');
-  const badgeText = document.getElementById('badgeText');
-  const badgeCheck= mktBadge.querySelector('.badge-check');
-  const gcNote    = document.getElementById('gcNote');
-  const gcNoteIcon= gcNote.querySelector('.gc-note-icon');
-  const gcNoteText= document.getElementById('gcNoteText');
-
-  if (integrated) {
-    mktBadge.className = 'mkt-badge ok';
-    badgeText.textContent = 'Market Integrated';
-    badgeCheck.textContent = '✓';
-    gcNote.className = 'gc-note';
-    gcNoteIcon.textContent = '✓';
-    gcNoteText.textContent = gr.message || `Selected lag ${optLag} is statistically significant.`;
-  } else {
-    mktBadge.className = 'mkt-badge no';
-    badgeText.textContent = 'Not Integrated';
-    badgeCheck.textContent = '✗';
-    gcNote.className = 'gc-note warn';
-    gcNoteIcon.textContent = '⚠';
-    gcNoteText.textContent = gr.message || `Selected lag ${optLag} is not statistically significant.`;
+async function init(){
+  try{
+    setLoading(true);
+    await loadDashboardData();
+    buildSidebarPills();
+    buildOverview();
+    buildMarginView();
+  }catch(error){
+    console.error(error);
+    showError(`Failed to load dashboard data. ${error.message}`);
+  }finally{
+    setLoading(false);
   }
 }
-
-function renderPriceChart(vd) {
-  const isSeasonal = state.view === 'seasonal';
-  const isYearly   = state.yearly && !isSeasonal;
-  const n = vd.labels.length;
-  const isScrollable = !isSeasonal && !isYearly;
-  const PW = isScrollable ? Math.max(n * 19, 800) : '100%';
-  const PH = 280;
-
-  const pWrap   = document.getElementById('priceChartWrap');
-  const pCanvas = document.getElementById('priceChart');
-  pCanvas.style.height = PH + 'px';
-  if (typeof PW === 'number') {
-    pWrap.style.width = PW + 'px';
-    pCanvas.style.width = PW + 'px';
-    pCanvas.width = PW;
-    pCanvas.height = PH;
-  } else {
-    pWrap.style.width = '';
-    pCanvas.style.width = '';
-  }
-
-  charts.price.data.labels = vd.labels;
-  charts.price.data.datasets[0].data = vd.fg;
-  charts.price.data.datasets[1].data = vd.margin;
-  charts.price.options.scales.y.stacked = true;
-  charts.price.resize();
-  charts.price.update();
-}
-
-function renderShareChart(vd) {
-  const isSeasonal = state.view === 'seasonal';
-  const isYearly   = state.yearly && !isSeasonal;
-  const n = vd.labels.length;
-  const isScrollable = !isSeasonal && !isYearly;
-  const SW = isScrollable ? Math.max(n * 19, 800) : '100%';
-
-  const sWrap   = document.getElementById('shareChartWrap');
-  const sCanvas = document.getElementById('shareChart');
-  sCanvas.style.height = '220px';
-  if (typeof SW === 'number') {
-    sWrap.style.width = SW + 'px';
-    sCanvas.style.width = SW + 'px';
-    sCanvas.width = SW;
-    sCanvas.height = 220;
-  } else {
-    sWrap.style.width = '';
-    sCanvas.style.width = '';
-  }
-
-  const avgShareVal = avg(vd.share);
-  charts.share.data.labels = vd.labels;
-  charts.share.data.datasets[0].data = vd.share;
-  charts.share.data.datasets[1].data = vd.share.map(() => +avgShareVal.toFixed(1));
-  charts.share.resize();
-  charts.share.update();
-}
-
-async function renderMarginBarChart(selectedCommodity) {
-  try {
-    const allData = await fetchAllMargins();
-    const labels  = allData.map(d => d.commodity);
-    const margins = allData.map(d => d.avg_margin);
-    const selIdx  = labels.indexOf(selectedCommodity);
-
-    charts.margin.data.labels = labels;
-    charts.margin.data.datasets[0].data = margins;
-    charts.margin.data.datasets[0].backgroundColor = labels.map((_, i) =>
-      i === selIdx ? 'rgba(58,114,40,0.90)' : 'rgba(58,114,40,0.50)'
-    );
-    charts.margin.data.datasets[0].borderColor = labels.map((_, i) =>
-      i === selIdx ? GREEN_BORDER : 'rgba(58,114,40,0.60)'
-    );
-    charts.margin.update();
-  } catch (e) {
-    console.warn('Bar chart error:', e);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// MAIN UPDATE  — called on every control change
-// ─────────────────────────────────────────────────────────────────
-async function updateDashboard() {
-  showLoading(true);
-  const c = state.commodity;
-
-  try {
-    // 1. Fetch margin/price data (cached after first load)
-    const rows = await fetchMarginData(c);
-
-    // 2. Transform to current view
-    const isSeasonal = state.view === 'seasonal';
-    const isYearly   = state.yearly && !isSeasonal;
-    let vd;
-    if (isSeasonal)    vd = toSeasonalView(rows);
-    else if (isYearly) vd = toYearlyView(rows);
-    else               vd = toMonthlyView(rows);
-
-    _currentViewData = vd;
-
-    // 3. Update subtitle
-    document.getElementById('mainSubtitle').textContent =
-      `Analyzing price transmission and marketing margins for ${c}`;
-
-    // 4. Info icon (seasonal warning)
-    document.getElementById('infoIcon').className = isSeasonal ? 'info-icon show' : 'info-icon';
-
-    // 5. Stat cards
-    renderStats(vd);
-
-    // 6. Charts
-    renderPriceChart(vd);
-    renderShareChart(vd);
-    renderMarginBarChart(c);   // async but non-blocking for main content
-
-    // 7. Granger causality (always runs on full data; max_lag sent as query param)
-    const gr = await fetchGrangerData(c, state.maxLag);
-    renderGranger(gr);
-
-  } catch (err) {
-    console.error('Dashboard update failed:', err);
-    renderGrangerError(err.message || 'Granger analysis failed');
-    showError(`Failed to load data for ${c}. ${err.message || 'Is the backend running on port 5000?'}`);
-  } finally {
-    showLoading(false);
-  }
-}
-
-function renderGrangerError(message) {
-  document.getElementById('gcStatus').textContent = 'Analysis unavailable';
-  document.getElementById('gcPval').textContent = '—';
-  document.getElementById('gcLag').textContent = '—';
-  document.getElementById('badgePval').textContent = 'p-value: —';
-  const gcNote = document.getElementById('gcNote');
-  const gcNoteIcon = gcNote.querySelector('.gc-note-icon');
-  const gcNoteText = document.getElementById('gcNoteText');
-  gcNote.className = 'gc-note warn';
-  gcNoteIcon.textContent = '⚠';
-  gcNoteText.textContent = message;
-}
-
-// ─────────────────────────────────────────────────────────────────
-// CONTROLS
-// ─────────────────────────────────────────────────────────────────
-function setView(v) {
-  state.view = v;
-  document.getElementById('btnTimeline').className = v === 'timeline' ? 'view-btn active' : 'view-btn';
-  document.getElementById('btnSeasonal').className = v === 'seasonal' ? 'view-btn active' : 'view-btn';
-  document.getElementById('viewHint').textContent  =
-    v === 'timeline' ? 'Full 2021–2025 progression' : 'Jan–Dec average (2021–2025)';
-
-  const agg = document.getElementById('aggToggle');
-  if (v === 'seasonal') {
-    agg.disabled = true;
-    document.getElementById('lblMonthly').style.opacity = '0.45';
-    document.getElementById('lblYearly').style.opacity  = '0.45';
-  } else {
-    agg.disabled = false;
-    document.getElementById('lblMonthly').style.opacity = '';
-    document.getElementById('lblYearly').style.opacity  = '';
-    updateAggLabels(agg.checked);
-  }
-  updateDashboard();
-}
-
-function setAggregation(yearly) {
-  state.yearly = yearly;
-  updateAggLabels(yearly);
-  updateDashboard();
-}
-
-function updateAggLabels(yearly) {
-  const monthly = document.getElementById('lblMonthly');
-  const yearlyL = document.getElementById('lblYearly');
-  monthly.style.color      = yearly ? '' : 'var(--t900)';
-  monthly.style.fontWeight = yearly ? '400' : '600';
-  yearlyL.style.color      = yearly ? 'var(--t900)' : '';
-  yearlyL.style.fontWeight = yearly ? '600' : '400';
-}
-
-function setLag(v) {
-  state.maxLag = +v;
-  document.getElementById('lagVal').textContent = v;
-  const slider = document.getElementById('lagSlider');
-  const min = +slider.min;
-  const max = +slider.max;
-  const pct = ((v - min) / (max - min) * 100).toFixed(1);
-  slider.style.background =
-    `linear-gradient(to right,var(--g700) 0%,var(--g700) ${pct}%,var(--border) ${pct}%,var(--border) 100%)`;
-  updateDashboard();
-}
-
-document.getElementById('commoditySelect').addEventListener('change', function () {
-  state.commodity = this.value;
-  updateDashboard();
-});
-
-// ─────────────────────────────────────────────────────────────────
-// BOOT
-// ─────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  makeCharts();
-  updateDashboard();
-});
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

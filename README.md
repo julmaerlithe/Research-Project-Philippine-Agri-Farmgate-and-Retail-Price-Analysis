@@ -13,8 +13,8 @@ This project examines farmgate versus retail price transparency for major agricu
 | **Aspect** | **Details** |
 |------------|-------------|
 | **Technical Stack** | Python 3.10+, FastAPI, Pandas, NumPy, Statsmodels |
-| **Dataset Coverage** | 2021–2025 PSA data for 8 major commodities |
-| **Key Commodities** | Banana, Mango, Pineapple, Coconut, Cassava, Ube, Palay, Corn |
+| **Dataset Coverage** | 2021-2025 PSA monthly price data |
+| **Key Commodities** | Rice, Corn, Coconut, Cassava, Banana, Pineapple, Mango |
 | **Analysis Methods** | Marketing Margin Analysis, Granger Causality Testing |
 
 ## Key Features
@@ -110,38 +110,46 @@ The backend will be available at `http://localhost:8000` and the frontend at `ht
 
 The backend provides RESTful API endpoints under the `/api/analysis/` prefix for various analytical operations:
 
-### Margin Analysis
+### Marketing Margin Analysis
 ```http
-GET /api/analysis/margins/{commodity}
+GET /analysis/margin/{commodity}
+GET /api/analysis/margin/{commodity}
 ```
 Retrieve marketing margins and farmer's share for a specific commodity.
 
 ```http
-POST /api/analysis/margins/batch
+Margin = Retail - Farmgate
+Farmer's Share = (Farmgate / Retail) * 100
 ```
-Calculate margins for multiple commodities.
 
 ### Trend Analysis
 ```http
-GET /api/analysis/trends/{commodity}
+GET /analysis/trends?commodity={commodity}&frequency=monthly
+GET /api/analysis/trends?commodity={commodity}&frequency=monthly
 ```
-Get price trend analysis for a commodity over time.
+Get monthly or yearly price trend analysis for a commodity over time.
 
 ```http
-GET /api/analysis/trends/comparison
+GET /analysis/trends?frequency=yearly
+GET /api/analysis/trends?frequency=yearly
 ```
-Compare trends between farmgate and retail prices.
+Compare aggregated farmgate, retail, margin, and farmer share trends.
+
+```http
+Trend Equation: Yt = a + bt
+Growth Rate = ((Pt - Pt-1) / Pt-1) * 100
+```
 
 ### Causality Testing
 ```http
+GET /analysis/causality/{commodity}
 GET /api/analysis/causality/{commodity}
 ```
 Perform Granger causality test between farmgate and retail prices for a commodity.
 
 ```http
-POST /api/analysis/causality/multiple
+p-value < 0.05 means farmgate prices significantly predict retail prices.
 ```
-Run causality tests for multiple commodities.
 
 ## How to Interpret Results
 
@@ -150,73 +158,11 @@ In the context of Granger causality testing for Philippine agricultural price tr
 - **Low p-value (< 0.05)**: Indicates strong evidence that farmgate price changes significantly predict retail price movements, suggesting efficient price transmission and good market integration.
 - **High p-value (≥ 0.05)**: Suggests weak or no causal relationship, potentially indicating market inefficiencies, information asymmetries, or external factors disrupting price transmission in the agricultural supply chain.
 
-## Contributors
-
-| **Name** | **Role** | **Affiliation** |
-|----------|----------|-----------------|
-| [Your Name] | Project Lead & Developer | [Your Institution] |
-| [Contributor 1] | Data Analyst | [Affiliation] |
-| [Contributor 2] | Backend Developer | [Affiliation] |
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### Causality Testing
-- `GET /api/analysis/causality/{commodity}` - Perform Granger causality test between farmgate and retail prices for a commodity
-- `POST /api/analysis/causality/multiple` - Run causality tests for multiple commodities
-
-All endpoints return JSON responses with detailed analysis results, including statistical metrics and visualizations where applicable.
-```
-then open: 
-http://127.0.0.1:8000/docs
-
----
-## API Endpoints & Features
-
-### 1. Marketing Margin Analysis
-**Endpoint:** `/analysis/margin/{commodity}`  
-
-- Computes price spread and farmer share  
-
-**Formulas:**
-- `Margin = Retail - Farmgate`  
-- `Farmer's Share = (Farmgate / Retail) × 100`  
-
----
-
-### 2. Granger Causality Test
-**Endpoint:** `/analysis/causality/{commodity}`  
-
-- Tests if farmgate prices predict retail prices  
-
-**Interpretation:**
-- `p-value < 0.05` → Significant relationship  
-- Indicates responsive or delayed price transmission  
-
----
-
-### 3. Time-Series Trends
-**Endpoint:** `/analysis/trends`  
-
-- Aggregates data monthly or yearly  
-- Identifies trends, inflation, and seasonal patterns  
-
----
-
-## Economic Significance
-
-This system helps identify:
-
-- **Market Inefficiency** → Large margins indicate high intermediary costs  
-- **Price Rigidity** → Retail prices remain high despite falling farmgate prices  
-- **Food Security Risks** → Volatility in staple crops like rice (palay) and corn  
-
 ## Dataset
 
 - **Source**: Philippine Statistics Authority (PSA)  
-- **Coverage**: 2021–2025  
-- **Commodities**:  Rice, Corn, Coconut, Bananas, Pineapples, Mangoes, and Cassava
+- **Coverage**: 2021-2025  
+- **Commodities**: Rice, Corn, Coconut, Cassava, Bananas, Pineapples, and Mangoes.
 
 ---
 
@@ -224,3 +170,8 @@ This system helps identify:
 - **ARONG** – Lead Researcher
 - **LOPEZ** - Frontend Developer 
 - **LOSORATA** – Data Analyst & Backend Developer 
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
