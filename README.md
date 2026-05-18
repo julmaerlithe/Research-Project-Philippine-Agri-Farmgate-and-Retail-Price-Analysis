@@ -1,177 +1,267 @@
 # AgriPulse PH: Agricultural Price Intelligence & Market Integration
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com/)
 
 ## Project Overview
 
-This project examines farmgate versus retail price transparency for major agricultural commodities in the Philippines from 2021 to 2025. Utilizing datasets from the Philippine Statistics Authority (PSA), the system analyzes price transmission mechanisms, marketing margins, and causal relationships between farmgate and retail prices to enhance supply chain transparency and inform policy decisions.
+This project examines farmgate versus retail price transparency for major agricultural commodities in the Philippines from 2021 to 2025. Using Philippine Statistics Authority (PSA) price data, the system analyzes price transmission, marketing margins, farmer share, trends, and Granger causality relationships between farmgate and retail prices.
+
+The project includes a Flask backend API and a Flask-served frontend dashboard for exploring agricultural price behavior and market integration.
 
 ## Quick Facts
 
-| **Aspect** | **Details** |
-|------------|-------------|
-| **Technical Stack** | Python 3.10+, FastAPI, Pandas, NumPy, Statsmodels |
-| **Dataset Coverage** | 2021-2025 PSA monthly price data |
-| **Key Commodities** | Rice, Corn, Coconut, Cassava, Banana, Pineapple, Mango |
-| **Analysis Methods** | Marketing Margin Analysis, Granger Causality Testing |
+| Aspect | Details |
+| --- | --- |
+| Technical Stack | Python 3.10+, Flask, Flask-CORS, Pandas, NumPy, SciPy, Statsmodels |
+| Dataset Coverage | 2021-2025 PSA monthly price data |
+| Key Commodities | Rice, Corn, Coconut, Cassava, Banana, Pineapple, Mango |
+| Analysis Methods | Marketing Margin Analysis, Farmer Share, Trend Analysis, Granger Causality Testing |
+| Backend Port | `http://localhost:5000` |
+| Frontend Port | `http://localhost:5001` |
 
 ## Key Features
 
-- **Data Standardization**: Processes and standardizes raw PSA datasets into a unified format for consistent analysis.
-- **Marketing Margin Analysis**: Calculates marketing margins and farmer's share for key commodities.
-- **Granger Causality Testing**: Applies statistical tests using Statsmodels to determine if changes in farmgate prices Granger-cause changes in retail prices, assessing price transmission efficiency.
+- **Data Standardization**: Loads the raw PSA dataset and converts it into a consistent long-form analytical structure.
+- **Marketing Margin Analysis**: Calculates the difference between retail and farmgate prices.
+- **Farmer Share Analysis**: Estimates the percentage of the retail price received at the farmgate level.
+- **Trend Analysis**: Provides monthly and yearly summaries, growth rates, volatility, trend equations, and seasonal indicators.
+- **Granger Causality Testing**: Uses Statsmodels to test whether farmgate price movements help predict retail price movements.
+- **Dashboard Data Endpoint**: Provides a combined API response for frontend charts and summary cards.
 
 ## Economic Significance
 
-- **Supply Chain Transparency**: Identifies inefficiencies in price transmission from farmgate to retail markets.
-- **Farmer Welfare**: Quantifies farmer's share in final retail prices to advocate for fair pricing policies.
-- **Policy Insights**: Provides data-driven evidence for agricultural market reforms in the Philippines.
-- **Market Integration**: Assesses how well farmgate price changes are reflected in retail prices over time.
+- **Supply Chain Transparency**: Highlights differences between farmgate and retail prices.
+- **Farmer Welfare**: Quantifies farmer share in final retail prices.
+- **Policy Insights**: Provides evidence for agricultural market reforms and price monitoring.
+- **Market Integration**: Assesses whether farmgate price changes are reflected in retail prices over time.
 
 ## Project Structure
 
-```
+```text
 /
-├── backend/
-│   ├── main.py                 # FastAPI application entry point
-│   ├── requirements.txt        # Python dependencies
-│   ├── routes/
-│   │   ├── __init__.py
-│   │   ├── analysis.py         # Analysis-related API routes
-│   │   └── prices.py           # Price data API routes
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── analytics_service.py # Analytics and statistical computations
-│   │   ├── data_service.py     # Data loading and processing
-│   │   └── price_service.py    # Price-specific calculations
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── price_model.py      # Data models and schemas
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   └── standardizer.py     # Data standardization utilities
-│   └── data/
-│       └── FINAL Datasets - Farmgate&Retail Prices (Average, Margin).csv
-├── frontend/
-│   ├── main.py                 # Frontend application entry point
-│   ├── requirements.txt        # Python dependencies
-│   ├── routes/
-│   │   └── __init__.py
-│   └── static/
-│       └── index.html          # Static HTML frontend
-└── README.md                   # Project documentation
+|-- backend/
+|   |-- main.py                 # Flask backend API entry point
+|   |-- requirements.txt        # Backend Python dependencies
+|   |-- test.py                 # Local test/helper script
+|   |-- verify.py               # Local verification/helper script
+|   |-- routes/
+|   |   |-- __init__.py
+|   |   |-- analysis.py         # Analysis API routes
+|   |   `-- prices.py           # Price data API routes
+|   |-- services/
+|   |   |-- __init__.py
+|   |   |-- analytics_service.py # Analytics and statistical computations
+|   |   |-- data_service.py      # Data loading and standardization
+|   |   `-- price_service.py     # Price-related service module
+|   |-- models/
+|   |   |-- __init__.py
+|   |   `-- price_model.py       # Data models and schemas
+|   |-- utils/
+|   |   |-- __init_.py
+|   |   `-- standardizer.py      # Data standardization utilities
+|   `-- data/
+|       `-- FINAL Datasets - Farmgate&Retail Prices (Average, Margin).csv
+|-- frontend/
+|   |-- main.py                 # Flask frontend static server
+|   |-- requirements.txt        # Frontend Python dependencies
+|   |-- routes/
+|   |   `-- __init__.py
+|   `-- static/
+|       |-- index.html          # Frontend dashboard
+|       `-- logo-hehe.png       # Frontend logo asset
+`-- README.md
 ```
 
 ## Setup Instructions
 
 ### Prerequisites
-- **Python**: 3.10 or higher
-- **Package Manager**: pip
+
+- Python 3.10 or higher
+- pip
 
 ### Installation
 
-1. **Clone the repository**:
+1. Clone the repository:
+
    ```bash
    git clone <repository-url>
-   cd philippine-agri-price-analysis
+   cd Research-Project-Philippine-Agri-Farmgate-and-Retail-Price-Analysis
    ```
 
-2. **Install backend dependencies**:
+2. Install backend dependencies:
+
    ```bash
    cd backend
    pip install -r requirements.txt
    ```
 
-3. **Install frontend dependencies**:
+3. Install frontend dependencies:
+
    ```bash
    cd ../frontend
    pip install -r requirements.txt
    ```
 
-### Running the Application
+## Running the Application
 
-1. **Start the backend API**:
+1. Start the backend API:
+
    ```bash
    cd backend
    python main.py
    ```
 
-2. **Start the frontend** (in a separate terminal):
+   The backend API runs at:
+
+   ```text
+   http://localhost:5000
+   ```
+
+2. Start the frontend in a separate terminal:
+
    ```bash
    cd frontend
    python main.py
    ```
 
-The backend will be available at `http://localhost:8000` and the frontend at `http://localhost:8080` (or as configured).
+   The frontend dashboard runs at:
+
+   ```text
+   http://localhost:5001
+   ```
+
+The frontend calls the backend API at `http://localhost:5000/api`.
 
 ## API Endpoints
 
-The backend provides RESTful API endpoints under the `/api/analysis/` prefix for various analytical operations:
+### Health Check
+
+```http
+GET /api/health
+```
+
+Checks whether the backend is running.
+
+### Price Data
+
+```http
+GET /api/prices/all
+```
+
+Returns all standardized price records.
+
+```http
+GET /api/prices/commodities
+```
+
+Returns the available commodity names.
+
+```http
+GET /api/prices/{commodity}
+```
+
+Returns standardized price records for a specific commodity.
+
+Supported commodity names and aliases include `Rice`, `Palay`, `Corn`, `Coconut`, `Cassava`, `Banana`, `Pineapple`, and `Mango`.
 
 ### Marketing Margin Analysis
-```http
-GET /analysis/margin/{commodity}
-GET /api/analysis/margin/{commodity}
-```
-Retrieve marketing margins and farmer's share for a specific commodity.
 
 ```http
-Margin = Retail - Farmgate
-Farmer's Share = (Farmgate / Retail) * 100
+GET /api/analysis/margin/{commodity}
+GET /analysis/margin/{commodity}
 ```
+
+Returns monthly farmgate price, retail price, marketing margin, and farmer share for a specific commodity.
+
+```text
+Margin = Retail - Farmgate
+Farmer Share = (Farmgate / Retail) * 100
+```
+
+### All Commodity Margins
+
+```http
+GET /api/analysis/margins/all
+GET /analysis/margins/all
+```
+
+Returns average margin, farmgate price, retail price, and farmer share for all target commodities.
 
 ### Trend Analysis
+
 ```http
-GET /analysis/trends?commodity={commodity}&frequency=monthly
 GET /api/analysis/trends?commodity={commodity}&frequency=monthly
+GET /api/analysis/trends?commodity={commodity}&frequency=yearly
+GET /analysis/trends?commodity={commodity}&frequency=monthly
+GET /analysis/trends?commodity={commodity}&frequency=yearly
 ```
-Get monthly or yearly price trend analysis for a commodity over time.
+
+Returns trend, volatility, growth rate, inflation, and seasonal analysis for one commodity.
 
 ```http
-GET /analysis/trends?frequency=yearly
+GET /api/analysis/trends?frequency=monthly
 GET /api/analysis/trends?frequency=yearly
+GET /analysis/trends?frequency=monthly
+GET /analysis/trends?frequency=yearly
 ```
-Compare aggregated farmgate, retail, margin, and farmer share trends.
 
-```http
+Returns trend analysis for all target commodities.
+
+```text
 Trend Equation: Yt = a + bt
 Growth Rate = ((Pt - Pt-1) / Pt-1) * 100
 ```
 
 ### Causality Testing
-```http
-GET /analysis/causality/{commodity}
-GET /api/analysis/causality/{commodity}
-```
-Perform Granger causality test between farmgate and retail prices for a commodity.
 
 ```http
-p-value < 0.05 means farmgate prices significantly predict retail prices.
+GET /api/analysis/causality/{commodity}
+GET /analysis/causality/{commodity}
+```
+
+Performs a Granger causality test between farmgate and retail prices for a commodity. The optional `max_lag` query parameter is supported and is capped between 1 and 3.
+
+Example:
+
+```http
+GET /api/analysis/causality/Rice?max_lag=3
+```
+
+### Dashboard Data
+
+```http
+GET /api/analysis/dashboard-data
+GET /analysis/dashboard-data
+```
+
+Returns the combined data model used by the frontend dashboard:
+
+```text
+commodities, margin, granger, trends, yearly
 ```
 
 ## How to Interpret Results
 
-In the context of Granger causality testing for Philippine agricultural price transparency:
+For Granger causality testing:
 
-- **Low p-value (< 0.05)**: Indicates strong evidence that farmgate price changes significantly predict retail price movements, suggesting efficient price transmission and good market integration.
-- **High p-value (≥ 0.05)**: Suggests weak or no causal relationship, potentially indicating market inefficiencies, information asymmetries, or external factors disrupting price transmission in the agricultural supply chain.
+- **Low p-value below 0.05**: Farmgate price changes significantly help predict retail price changes, suggesting stronger price transmission.
+- **High p-value at or above 0.05**: The test does not find significant predictive evidence from farmgate prices to retail prices, which may suggest weaker price transmission or other market influences.
+
+For marketing margins:
+
+- **Higher margin**: A larger gap between retail and farmgate prices.
+- **Higher farmer share**: A larger percentage of the retail price is represented by the farmgate price.
 
 ## Dataset
 
-- **Source**: Philippine Statistics Authority (PSA)  
-- **Coverage**: 2021-2025  
-- **Commodities**: Rice, Corn, Coconut, Cassava, Bananas, Pineapples, and Mangoes.
-
----
+- **Source**: Philippine Statistics Authority (PSA)
+- **Coverage**: Monthly data from 2021 to 2025
+- **Commodities**: Rice, Corn, Coconut, Cassava, Banana, Pineapple, and Mango
+- **Dataset file**: `backend/data/FINAL Datasets - Farmgate&Retail Prices (Average, Margin).csv`
 
 ## Contributors
-- **ARONG** – Lead Researcher
-- **LOPEZ** - Frontend Developer 
-- **LOSORATA** – Data Analyst & Backend Developer 
 
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **ARONG** - Lead Researcher
+- **LOPEZ** - Frontend Developer and Frontend-Backend Integration
+- **LOSORATA** - Data Analyst and Backend Developer
